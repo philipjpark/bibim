@@ -43,7 +43,6 @@ import {
   SwapHoriz,
   Timeline
 } from '@mui/icons-material';
-import { useTranslation } from '../contexts/TranslationContext';
 import {
   LineChart,
   Line,
@@ -94,7 +93,6 @@ const generatePriceHistory = (symbol: string) => {
 };
 
 const Dashboard: React.FC = () => {
-  const { translateSync } = useTranslation();
   const [holdings, setHoldings] = useState<Holding[]>([
     { symbol: 'SOL', name: 'Solana', amount: 125.5, value: 12840.50, change24h: 5.23, allocation: 35.2 },
     { symbol: 'BTC', name: 'Bitcoin', amount: 0.75, value: 32250.00, change24h: -2.15, allocation: 40.8 },
@@ -230,7 +228,7 @@ const Dashboard: React.FC = () => {
                   mb: 1
                 }}
               >
-                {translateSync('Portfolio Dashboard')}
+                Portfolio Dashboard
               </Typography>
               <Typography 
                 variant="h6" 
@@ -238,7 +236,7 @@ const Dashboard: React.FC = () => {
                   color: 'text.secondary'
                 }}
               >
-                {translateSync('Track your crypto holdings and performance')}
+                Track your crypto holdings and performance
               </Typography>
             </Box>
             <Button
@@ -246,8 +244,12 @@ const Dashboard: React.FC = () => {
               startIcon={<Refresh />}
               onClick={refreshData}
               disabled={isLoading}
+              sx={{ 
+                borderRadius: '20px',
+                px: 3
+              }}
             >
-              {translateSync('Refresh')}
+              Refresh
             </Button>
           </Box>
         </motion.div>
@@ -255,545 +257,296 @@ const Dashboard: React.FC = () => {
         {/* Portfolio Overview Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white'
+              }}
             >
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <AccountBalanceWallet sx={{ mr: 2, color: 'primary.main' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {translateSync('Total Portfolio Value')}
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" color="primary.main" sx={{ mb: 1 }}>
-                    {formatCurrency(portfolioMetrics.totalValue)}
-                  </Typography>
-                  {isLoading && <LinearProgress sx={{ height: 4, borderRadius: 2 }} />}
-                </CardContent>
-              </Card>
-            </motion.div>
+              <Typography variant="h6" gutterBottom>
+                Total Portfolio Value
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {formatCurrency(portfolioMetrics.totalValue)}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                {formatPercent(portfolioMetrics.totalChangePercent)} (24h)
+              </Typography>
+            </Paper>
           </Grid>
-
           <Grid item xs={12} sm={6} md={3}>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                color: 'white'
+              }}
             >
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    {portfolioMetrics.totalChange24h >= 0 ? 
-                      <TrendingUp sx={{ mr: 2, color: 'success.main' }} /> :
-                      <TrendingDown sx={{ mr: 2, color: 'error.main' }} />
-                    }
-                    <Typography variant="body2" color="text.secondary">
-                      {translateSync('24h Change')}
-                    </Typography>
-                  </Box>
-                  <Typography 
-                    variant="h4" 
-                    color={portfolioMetrics.totalChange24h >= 0 ? 'success.main' : 'error.main'}
-                    sx={{ mb: 1 }}
-                  >
-                    {formatCurrency(Math.abs(portfolioMetrics.totalChange24h))}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color={portfolioMetrics.totalChange24h >= 0 ? 'success.main' : 'error.main'}
-                  >
-                    {formatPercent(portfolioMetrics.totalChangePercent)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <Typography variant="h6" gutterBottom>
+                24h Change
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {formatCurrency(portfolioMetrics.totalChange24h)}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                {formatPercent(portfolioMetrics.totalChangePercent)}
+              </Typography>
+            </Paper>
           </Grid>
-
           <Grid item xs={12} sm={6} md={3}>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                color: 'white'
+              }}
             >
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <AttachMoney sx={{ mr: 2, color: 'secondary.main' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {translateSync('Total P&L')}
-                    </Typography>
-                  </Box>
-                  <Typography 
-                    variant="h4" 
-                    color={portfolioMetrics.totalPnL >= 0 ? 'success.main' : 'error.main'}
-                    sx={{ mb: 1 }}
-                  >
-                    {portfolioMetrics.totalPnL >= 0 ? '+' : ''}{formatCurrency(portfolioMetrics.totalPnL)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {translateSync('All time')}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <Typography variant="h6" gutterBottom>
+                Total P&L
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {formatCurrency(portfolioMetrics.totalPnL)}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                All time
+              </Typography>
+            </Paper>
           </Grid>
-
           <Grid item xs={12} sm={6} md={3}>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                color: 'white'
+              }}
             >
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <PieChart sx={{ mr: 2, color: 'warning.main' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {translateSync('Assets')}
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" color="warning.main" sx={{ mb: 1 }}>
-                    {holdings.length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {translateSync('Holdings')}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <Typography variant="h6" gutterBottom>
+                Assets
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {holdings.length}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                Holdings
+              </Typography>
+            </Paper>
           </Grid>
         </Grid>
 
         {/* Holdings Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+        <Paper
+          elevation={2}
+          sx={{
+            borderRadius: '16px',
+            overflow: 'hidden'
+          }}
         >
-          <Paper sx={{ borderRadius: 2 }}>
-            <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h5" fontWeight="bold">
-                {translateSync('Your Holdings')}
-              </Typography>
-            </Box>
-            
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{translateSync('Asset')}</TableCell>
-                    <TableCell align="right">{translateSync('Amount')}</TableCell>
-                    <TableCell align="right">{translateSync('Value')}</TableCell>
-                    <TableCell align="right">{translateSync('24h Change')}</TableCell>
-                    <TableCell align="right">{translateSync('Allocation')}</TableCell>
-                    <TableCell align="right">{translateSync('Actions')}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {holdings.map((holding) => (
-                    <TableRow key={holding.symbol} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Box sx={{ ml: 2 }}>
-                            <Typography variant="body1" fontWeight="medium">
-                              {holding.symbol}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {holding.name}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body1">
-                          {holding.amount.toFixed(4)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body1" fontWeight="medium">
-                          {formatCurrency(holding.value)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography 
-                          variant="body1" 
-                          color={holding.change24h >= 0 ? 'success.main' : 'error.main'}
-                          fontWeight="medium"
+          <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Your Holdings
+            </Typography>
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Asset</TableCell>
+                  <TableCell align="right">Amount</TableCell>
+                  <TableCell align="right">Value</TableCell>
+                  <TableCell align="right">24h Change</TableCell>
+                  <TableCell align="right">Allocation</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {holdings.map((holding) => (
+                  <TableRow key={holding.symbol} hover>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            background: `linear-gradient(135deg, ${holding.symbol === 'BTC' ? '#f7931a' : holding.symbol === 'ETH' ? '#627eea' : '#14f195'}, ${holding.symbol === 'BTC' ? '#ff9500' : holding.symbol === 'ETH' ? '#764ba2' : '#00d4aa'})`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '0.9rem'
+                          }}
                         >
-                          {formatPercent(holding.change24h)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                          <Typography variant="body2" sx={{ mr: 1 }}>
-                            {holding.allocation.toFixed(1)}%
-                          </Typography>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={holding.allocation} 
-                            sx={{ width: 60, height: 6, borderRadius: 3 }}
-                          />
+                          {holding.symbol}
                         </Box>
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton size="small" title={translateSync('View Details')} onClick={() => handleViewDetails(holding)}>
-                          <Visibility />
-                        </IconButton>
-                        <IconButton size="small" title={translateSync('Trade')} onClick={() => handleTrade(holding)}>
-                          <ShowChart />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </motion.div>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {holding.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {holding.symbol}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2">
+                        {holding.amount.toFixed(4)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {formatCurrency(holding.value)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: holding.change24h >= 0 ? 'success.main' : 'error.main',
+                          fontWeight: 600
+                        }}
+                      >
+                        {formatPercent(holding.change24h)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2">
+                        {holding.allocation.toFixed(1)}%
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" title="View Details" onClick={() => handleViewDetails(holding)}>
+                        <Visibility />
+                      </IconButton>
+                      <IconButton size="small" title="Trade" onClick={() => handleTrade(holding)}>
+                        <SwapHoriz />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </Container>
 
-      {/* Details Dialog */}
-      <Dialog 
-        open={detailsOpen} 
+      {/* Asset Details Modal */}
+      <Dialog
+        open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
         maxWidth="md"
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Timeline sx={{ color: 'primary.main' }} />
-              <Box>
-                <Typography variant="h6">
-                  {selectedAsset?.symbol} - {selectedAsset?.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {translateSync('Asset Details')}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton onClick={() => setDetailsOpen(false)}>
-              <Close />
-            </IconButton>
-          </Box>
+          Asset Details
         </DialogTitle>
         <DialogContent>
           {selectedAsset && (
-            <Box sx={{ mt: 2 }}>
-              {/* Asset Overview Cards */}
-              <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={3}>
-                  <Card sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Current Price
-                    </Typography>
-                    <Typography variant="h5" color="primary.main">
-                      {formatCurrency(selectedAsset.value / selectedAsset.amount)}
-                    </Typography>
-                  </Card>
+            <Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" gutterBottom>
+                    {selectedAsset.name} ({selectedAsset.symbol})
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    Current Price: {formatCurrency(selectedAsset.value / selectedAsset.amount)}
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    Holdings: {selectedAsset.amount.toFixed(4)} {selectedAsset.symbol}
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    Total Value: {formatCurrency(selectedAsset.value)}
+                  </Typography>
                 </Grid>
-                <Grid item xs={12} md={3}>
-                  <Card sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      24h Change
-                    </Typography>
-                    <Typography 
-                      variant="h5" 
-                      color={selectedAsset.change24h >= 0 ? 'success.main' : 'error.main'}
-                    >
-                      {formatPercent(selectedAsset.change24h)}
-                    </Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Card sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Your Holdings
-                    </Typography>
-                    <Typography variant="h5">
-                      {selectedAsset.amount.toFixed(4)}
-                    </Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Card sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Total Value
-                    </Typography>
-                    <Typography variant="h5" color="secondary.main">
-                      {formatCurrency(selectedAsset.value)}
-                    </Typography>
-                  </Card>
-                </Grid>
-              </Grid>
-
-              {/* Price Chart */}
-              <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  30-Day Price History
-                </Typography>
-                <Box sx={{ height: 300 }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                <Grid item xs={12} md={6}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <AreaChart data={generatePriceHistory(selectedAsset.symbol)}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                      />
-                      <YAxis 
-                        tickFormatter={(value) => formatCurrency(value)}
-                      />
-                      <Tooltip 
-                        formatter={(value: number) => [formatCurrency(value), 'Price']}
-                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                      />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
                       <Area 
                         type="monotone" 
                         dataKey="price" 
                         stroke="#8884d8" 
-                        fill="url(#colorPrice)" 
+                        fill="#8884d8" 
+                        fillOpacity={0.3} 
                       />
-                      <defs>
-                        <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
                     </AreaChart>
                   </ResponsiveContainer>
-                </Box>
-              </Paper>
-
-              {/* Additional Metrics */}
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Portfolio Allocation
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="body1" sx={{ mr: 2 }}>
-                        {selectedAsset.allocation.toFixed(1)}%
-                      </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={selectedAsset.allocation} 
-                        sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
-                      />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Percentage of total portfolio value
-                    </Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Performance Metrics
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">7-day change:</Typography>
-                      <Typography variant="body2" color="success.main">
-                        +{(selectedAsset.change24h * 1.2).toFixed(2)}%
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">30-day change:</Typography>
-                      <Typography variant="body2" color="primary.main">
-                        +{(selectedAsset.change24h * 2.1).toFixed(2)}%
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2">Market cap rank:</Typography>
-                      <Typography variant="body2">
-                        #{selectedAsset.symbol === 'BTC' ? '1' : selectedAsset.symbol === 'ETH' ? '2' : '5'}
-                      </Typography>
-                    </Box>
-                  </Card>
                 </Grid>
               </Grid>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailsOpen(false)} startIcon={<Close />}>
-            {translateSync('Close')}
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={() => {
-              setDetailsOpen(false);
-              if (selectedAsset) handleTrade(selectedAsset);
-            }}
-            startIcon={<SwapHoriz />}
-          >
-            {translateSync('Trade')}
-          </Button>
+          <Button onClick={() => setDetailsOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Trade Dialog */}
-      <Dialog 
-        open={tradeOpen} 
+      {/* Trade Modal */}
+      <Dialog
+        open={tradeOpen}
         onClose={() => setTradeOpen(false)}
         maxWidth="sm"
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <SwapHoriz sx={{ color: 'primary.main' }} />
-              <Box>
-                <Typography variant="h6">
-                  {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedAsset?.symbol}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Execute a {tradeType} order
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton onClick={() => setTradeOpen(false)}>
-              <Close />
-            </IconButton>
-          </Box>
+          Trade {selectedAsset?.symbol}
         </DialogTitle>
         <DialogContent>
-          {selectedAsset && (
-            <Box sx={{ mt: 2 }}>
-              {/* Current Asset Info */}
-              <Card sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Current Price
-                    </Typography>
-                    <Typography variant="h6">
-                      {formatCurrency(selectedAsset.value / selectedAsset.amount)}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Available Balance
-                    </Typography>
-                    <Typography variant="h6">
-                      {tradeType === 'sell' 
-                        ? `${selectedAsset.amount.toFixed(4)} ${selectedAsset.symbol}`
-                        : formatCurrency(10000) // Mock USD balance
-                      }
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Card>
-
-              {/* Trade Form */}
-              <Box sx={{ mb: 3 }}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="trade-type-label">Order Type</InputLabel>
-                  <Select
-                    labelId="trade-type-label"
-                    value={tradeType}
-                    label="Order Type"
-                    onChange={(e) => setTradeType(e.target.value as 'buy' | 'sell')}
-                  >
-                    <MenuItem value="buy">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TrendingUp sx={{ color: 'success.main', fontSize: 20 }} />
-                        Buy {selectedAsset.symbol}
-                      </Box>
-                    </MenuItem>
-                    <MenuItem value="sell">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TrendingDown sx={{ color: 'error.main', fontSize: 20 }} />
-                        Sell {selectedAsset.symbol}
-                      </Box>
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-
-                <TextField
-                  label={`Amount (${selectedAsset.symbol})`}
-                  type="number"
-                  value={tradeAmount}
-                  onChange={(e) => setTradeAmount(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  helperText={
-                    tradeType === 'sell' 
-                      ? `Max: ${selectedAsset.amount.toFixed(4)} ${selectedAsset.symbol}`
-                      : 'Enter the amount you want to buy'
-                  }
-                />
-
-                <TextField
-                  label="Price per unit (USD)"
-                  type="number"
-                  value={tradePrice}
-                  onChange={(e) => setTradePrice(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  helperText="Current market price (adjustable)"
-                />
-              </Box>
-
-              {/* Order Summary */}
-              {tradeAmount && tradePrice && (
-                <Card sx={{ p: 3, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Order Summary
-                  </Typography>
-                  <Divider sx={{ my: 2, bgcolor: 'primary.contrastText' }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography>Order Type:</Typography>
-                    <Typography fontWeight="bold">
-                      {tradeType.toUpperCase()} {selectedAsset.symbol}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography>Amount:</Typography>
-                    <Typography fontWeight="bold">
-                      {parseFloat(tradeAmount).toFixed(4)} {selectedAsset.symbol}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography>Price:</Typography>
-                    <Typography fontWeight="bold">
-                      {formatCurrency(parseFloat(tradePrice))}
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ my: 2, bgcolor: 'primary.contrastText' }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="h6">Total:</Typography>
-                    <Typography variant="h6" fontWeight="bold">
-                      {formatCurrency(parseFloat(tradeAmount) * parseFloat(tradePrice))}
-                    </Typography>
-                  </Box>
-                </Card>
-              )}
-
-              {/* Warning for large trades */}
-              {tradeAmount && parseFloat(tradeAmount) > selectedAsset.amount * 0.5 && tradeType === 'sell' && (
-                <Alert severity="warning" sx={{ mt: 2 }}>
-                  You're selling more than 50% of your holdings. This may significantly impact your portfolio allocation.
-                </Alert>
-              )}
-            </Box>
-          )}
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Trade Type</InputLabel>
+              <Select
+                value={tradeType}
+                onChange={(e) => setTradeType(e.target.value as 'buy' | 'sell')}
+              >
+                <MenuItem value="buy">Buy</MenuItem>
+                <MenuItem value="sell">Sell</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              label="Amount"
+              type="number"
+              value={tradeAmount}
+              onChange={(e) => setTradeAmount(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Price per unit"
+              type="number"
+              value={tradePrice}
+              onChange={(e) => setTradePrice(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            {tradeAmount && tradePrice && (
+              <Typography variant="body2" color="text.secondary">
+                Total: {formatCurrency(parseFloat(tradeAmount) * parseFloat(tradePrice))}
+              </Typography>
+            )}
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setTradeOpen(false)} startIcon={<Close />}>
-            Cancel
-          </Button>
+        <DialogActions>
+          <Button onClick={() => setTradeOpen(false)}>Cancel</Button>
           <Button 
-            variant="contained" 
-            onClick={executeTrade}
-            disabled={!tradeAmount || !tradePrice || parseFloat(tradeAmount) <= 0}
-            startIcon={<SwapHoriz />}
-            color={tradeType === 'buy' ? 'success' : 'error'}
+            onClick={executeTrade} 
+            variant="contained"
+            disabled={!tradeAmount || !tradePrice}
           >
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedAsset?.symbol}
+            Execute Trade
           </Button>
         </DialogActions>
       </Dialog>

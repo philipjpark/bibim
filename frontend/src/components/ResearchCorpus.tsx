@@ -47,7 +47,6 @@ import {
     SmartToy as AgentIcon,
     TrendingUp as QuantIcon,
 } from '@mui/icons-material';
-import { useTranslation } from '../contexts/TranslationContext';
 import { motion } from 'framer-motion';
 
 interface ResearchItem {
@@ -113,8 +112,7 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
     );
 }
 
-export default function ResearchCorpus() {
-    const { translateSync } = useTranslation();
+const ResearchCorpus: React.FC = () => {
     const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
     const [currentTab, setCurrentTab] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
@@ -308,17 +306,17 @@ export default function ResearchCorpus() {
             >
                 <Paper sx={{ p: 3, mb: 3 }}>
                     <Typography variant="h4" gutterBottom>
-                        {translateSync('Research Corpus Manager')}
+                        Research Corpus Manager
                     </Typography>
                     <Typography variant="body1" color="text.secondary" paragraph>
-                        {translateSync('Organize your research materials, PDFs, URLs, and notes to build a comprehensive knowledge base for your trading strategies.')}
+                        Organize your research materials, PDFs, URLs, and notes to build a comprehensive knowledge base for your trading strategies.
                     </Typography>
 
                     {/* Upload Progress */}
                     {isUploading && (
                         <Box sx={{ mb: 2 }}>
-                            <Typography variant="body2" gutterBottom>
-                                {translateSync('Uploading...')}
+                            <Typography variant="body2" color="primary">
+                                Uploading...
                             </Typography>
                             <LinearProgress variant="determinate" value={uploadProgress} />
                         </Box>
@@ -333,7 +331,7 @@ export default function ResearchCorpus() {
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading}
                             >
-                                {translateSync('Upload PDF')}
+                                Upload PDF
                             </Button>
                             <input
                                 ref={fileInputRef}
@@ -351,7 +349,7 @@ export default function ResearchCorpus() {
                                 onClick={() => imageInputRef.current?.click()}
                                 disabled={isUploading}
                             >
-                                {translateSync('Upload Image')}
+                                Upload Image
                             </Button>
                             <input
                                 ref={imageInputRef}
@@ -371,7 +369,7 @@ export default function ResearchCorpus() {
                                     setDialogOpen(true);
                                 }}
                             >
-                                {translateSync('Add URL')}
+                                Add URL
                             </Button>
                         </Grid>
                         <Grid item>
@@ -383,7 +381,7 @@ export default function ResearchCorpus() {
                                     setDialogOpen(true);
                                 }}
                             >
-                                {translateSync('Add Note')}
+                                Add Note
                             </Button>
                         </Grid>
                     </Grid>
@@ -393,7 +391,7 @@ export default function ResearchCorpus() {
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
-                                placeholder={translateSync('Search research items...')}
+                                placeholder="Search research items..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 InputProps={{
@@ -403,7 +401,7 @@ export default function ResearchCorpus() {
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <FormControl fullWidth>
-                                <InputLabel>{translateSync('Filter by Tags')}</InputLabel>
+                                <InputLabel>Filter by Tags</InputLabel>
                                 <Select
                                     multiple
                                     value={selectedTags}
@@ -434,21 +432,21 @@ export default function ResearchCorpus() {
                         onChange={(_, newValue) => setCurrentTab(newValue)}
                         sx={{ mb: 2 }}
                     >
-                        <Tab label={translateSync('All Items')} />
-                        <Tab label={translateSync('PDFs')} />
-                        <Tab label={translateSync('URLs')} />
-                        <Tab label={translateSync('Notes')} />
-                        <Tab label={translateSync('Images')} />
-                        <Tab label={translateSync('Research')} />
-                        <Tab label={translateSync('Development')} />
-                        <Tab label={translateSync('Agent Framework')} />
-                        <Tab label={translateSync('Quant Strategies')} />
+                        <Tab label="All Items" />
+                        <Tab label="PDFs" />
+                        <Tab label="URLs" />
+                        <Tab label="Notes" />
+                        <Tab label="Images" />
+                        <Tab label="Research" />
+                        <Tab label="Development" />
+                        <Tab label="Agent Framework" />
+                        <Tab label="Quant Strategies" />
                     </Tabs>
 
                     <TabPanel value={currentTab} index={0}>
                         {filteredItems.length === 0 ? (
                             <Alert severity="info">
-                                {translateSync('No research items found. Start by uploading some PDFs or adding URLs!')}
+                                No research items found. Start by uploading some PDFs or adding URLs!
                             </Alert>
                         ) : (
                             <Grid container spacing={2}>
@@ -487,7 +485,7 @@ export default function ResearchCorpus() {
                                                 </Box>
                                                 
                                                 <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                                                    {translateSync('Added')}: {item.dateAdded.toLocaleDateString()}
+                                                    Added: {item.dateAdded.toLocaleDateString()}
                                                 </Typography>
                                             </CardContent>
                                             
@@ -495,13 +493,13 @@ export default function ResearchCorpus() {
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => handleEditItem(item)}
-                                                    title={translateSync('Edit')}
+                                                    title="Edit"
                                                 >
                                                     <EditIcon />
                                                 </IconButton>
                                                 <IconButton
                                                     size="small"
-                                                    title={translateSync('View')}
+                                                    title="View"
                                                 >
                                                     <ViewIcon />
                                                 </IconButton>
@@ -509,7 +507,7 @@ export default function ResearchCorpus() {
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => window.open(item.url, '_blank')}
-                                                        title={translateSync('Open Link')}
+                                                        title="Open Link"
                                                     >
                                                         <LinkIcon />
                                                     </IconButton>
@@ -517,7 +515,7 @@ export default function ResearchCorpus() {
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => handleDeleteItem(item.id)}
-                                                    title={translateSync('Delete')}
+                                                    title="Delete"
                                                     color="error"
                                                 >
                                                     <DeleteIcon />
@@ -540,7 +538,7 @@ export default function ResearchCorpus() {
                             <TabPanel key={tabIndex} value={currentTab} index={tabIndex}>
                                 {typeItems.length === 0 ? (
                                     <Alert severity="info">
-                                        {translateSync(`No ${type} items found.`)}
+                                        No {type} items found.
                                     </Alert>
                                 ) : (
                                     <Grid container spacing={2}>
@@ -916,7 +914,6 @@ export default function ResearchCorpus() {
                         handleAddNote(data);
                     }
                 }}
-                translateSync={translateSync}
             />
         </Box>
     );
@@ -930,10 +927,9 @@ interface AddEditDialogProps {
     availableTags: string[];
     onClose: () => void;
     onSave: (data: any) => void;
-    translateSync: (key: string) => string;
 }
 
-function AddEditDialog({ open, type, item, availableTags, onClose, onSave, translateSync }: AddEditDialogProps) {
+function AddEditDialog({ open, type, item, availableTags, onClose, onSave }: AddEditDialogProps) {
     const [formData, setFormData] = useState({
         title: '',
         url: '',
@@ -961,10 +957,10 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
 
     const getDialogTitle = () => {
         switch (type) {
-            case 'url': return translateSync('Add URL');
-            case 'note': return translateSync('Add Note');
-            case 'edit': return translateSync('Edit Item');
-            default: return translateSync('Add Item');
+            case 'url': return 'Add URL';
+            case 'note': return 'Add Note';
+            case 'edit': return 'Edit Item';
+            default: return 'Add Item';
         }
     };
 
@@ -976,7 +972,7 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
-                            label={translateSync('Title')}
+                            label="Title"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             required
@@ -987,7 +983,7 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth
-                                label={translateSync('URL')}
+                                label="URL"
                                 value={formData.url}
                                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                                 required
@@ -999,7 +995,7 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth
-                                label={translateSync('Content')}
+                                label="Content"
                                 value={formData.content}
                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                 multiline
@@ -1012,7 +1008,7 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
-                            label={translateSync('Summary')}
+                            label="Summary"
                             value={formData.summary}
                             onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                             multiline
@@ -1022,7 +1018,7 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                     
                     <Grid item xs={12}>
                         <FormControl fullWidth>
-                            <InputLabel>{translateSync('Tags')}</InputLabel>
+                            <InputLabel>Tags</InputLabel>
                             <Select
                                 multiple
                                 value={formData.tags}
@@ -1046,15 +1042,17 @@ function AddEditDialog({ open, type, item, availableTags, onClose, onSave, trans
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>{translateSync('Cancel')}</Button>
+                <Button onClick={onClose}>Cancel</Button>
                 <Button 
                     onClick={handleSave} 
                     variant="contained"
                     disabled={!formData.title}
                 >
-                    {translateSync('Save')}
+                    Save
                 </Button>
             </DialogActions>
         </Dialog>
     );
-} 
+}
+
+export default ResearchCorpus; 

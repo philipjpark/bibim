@@ -21,7 +21,6 @@ import {
 import { ExpandMore } from '@mui/icons-material';
 import { Search, TrendingUp, Shield, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useTranslation } from '../contexts/TranslationContext';
 
 interface CryptoTerm {
   id: number;
@@ -55,25 +54,7 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-// Helper component for dynamic translation
-const TranslatedText: React.FC<{ text: string; variant?: any; [key: string]: any }> = ({ 
-  text, 
-  variant = "body1", 
-  ...props 
-}) => {
-  const { translateSync, currentLanguage } = useTranslation();
-  
-  // For English, return original text
-  if (currentLanguage === 'en') {
-    return <Typography variant={variant} {...props}>{text}</Typography>;
-  }
-  
-  // For other languages, use translation
-  return <Typography variant={variant} {...props}>{translateSync(text)}</Typography>;
-};
-
 const CryptoGlossary: React.FC = () => {
-  const { translateSync } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [tabValue, setTabValue] = useState(0);
@@ -707,7 +688,7 @@ const CryptoGlossary: React.FC = () => {
               textAlign: 'center'
             }}
           >
-            {translateSync('Crypto Trading Glossary for Beginners')}
+            Crypto Trading Glossary for Beginners
           </Typography>
           <Typography 
             variant="h6" 
@@ -717,7 +698,7 @@ const CryptoGlossary: React.FC = () => {
               textAlign: 'center'
             }}
           >
-            {translateSync('Learn crypto terms with traditional finance comparisons')}
+            Learn crypto terms with traditional finance comparisons
           </Typography>
         </motion.div>
 
@@ -728,7 +709,7 @@ const CryptoGlossary: React.FC = () => {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder={translateSync('Search crypto or traditional terms...')}
+                placeholder="Search crypto or traditional terms..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -745,7 +726,7 @@ const CryptoGlossary: React.FC = () => {
                 {categories.map((category) => (
                   <Chip
                     key={category}
-                    label={translateSync(category)}
+                    label={category}
                     onClick={() => setSelectedCategory(category)}
                     color={selectedCategory === category ? 'primary' : 'default'}
                     variant={selectedCategory === category ? 'filled' : 'outlined'}
@@ -761,8 +742,8 @@ const CryptoGlossary: React.FC = () => {
         <Paper sx={{ borderRadius: 2, mb: 3 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={tabValue} onChange={handleTabChange} aria-label="view toggle">
-              <Tab label={translateSync('Side-by-Side Comparison')} />
-              <Tab label={translateSync('Accordion View')} />
+              <Tab label="Side-by-Side Comparison" />
+              <Tab label="Accordion View" />
             </Tabs>
           </Box>
 
@@ -785,24 +766,25 @@ const CryptoGlossary: React.FC = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                 <Coins size={24} style={{ marginRight: 8 }} />
                                 <Typography variant="h6" fontWeight="bold">
-                                  <TranslatedText text={term.crypto} variant="span" />
+                                  {term.crypto}
                                 </Typography>
                                 <Chip 
-                                  label={translateSync(term.difficulty)}
+                                  label={term.difficulty}
                                   size="small"
                                   color={getDifficultyColor(term.difficulty) as any}
                                   sx={{ ml: 2 }}
                                 />
                               </Box>
-                              <TranslatedText 
-                                text={term.cryptoDefinition}
+                              <Typography 
                                 variant="body1" 
                                 sx={{ mb: 2, lineHeight: 1.6 }}
-                              />
+                              >
+                                {term.cryptoDefinition}
+                              </Typography>
                               {term.examples && (
                                 <Box>
                                   <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
-                                    {translateSync('Examples:')}
+                                    Examples:
                                   </Typography>
                                   <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
                                     {term.examples[0]}
@@ -818,24 +800,25 @@ const CryptoGlossary: React.FC = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                 <TrendingUp size={24} style={{ marginRight: 8 }} />
                                 <Typography variant="h6" fontWeight="bold">
-                                  <TranslatedText text={term.traditional} variant="span" />
+                                  {term.traditional}
                                 </Typography>
                                 <Chip 
-                                  label={translateSync(term.category)}
+                                  label={term.category}
                                   size="small"
                                   variant="outlined"
                                   sx={{ ml: 2, borderColor: 'white', color: 'white' }}
                                 />
                               </Box>
-                              <TranslatedText 
-                                text={term.traditionalDefinition}
+                              <Typography 
                                 variant="body1" 
                                 sx={{ mb: 2, lineHeight: 1.6 }}
-                              />
+                              >
+                                {term.traditionalDefinition}
+                              </Typography>
                               {term.examples && term.examples[1] && (
                                 <Box>
                                   <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
-                                    {translateSync('Examples:')}
+                                    Examples:
                                   </Typography>
                                   <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
                                     {term.examples[1]}
@@ -867,16 +850,16 @@ const CryptoGlossary: React.FC = () => {
                     <AccordionSummary expandIcon={<ExpandMore />}>
                       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                          <TranslatedText text={term.crypto} variant="span" /> ↔ <TranslatedText text={term.traditional} variant="span" />
+                          {term.crypto} ↔ {term.traditional}
                         </Typography>
                         <Chip 
-                          label={translateSync(term.difficulty)}
+                          label={term.difficulty}
                           size="small"
                           color={getDifficultyColor(term.difficulty) as any}
                           sx={{ mr: 2 }}
                         />
                         <Chip 
-                          label={translateSync(term.category)}
+                          label={term.category}
                           size="small"
                           variant="outlined"
                         />
@@ -888,15 +871,16 @@ const CryptoGlossary: React.FC = () => {
                           <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 1, color: 'white' }}>
                             <Typography variant="h6" gutterBottom>
                               <Coins size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
-                              <TranslatedText text={term.crypto} variant="span" />
+                              {term.crypto}
                             </Typography>
-                            <TranslatedText 
-                              text={term.cryptoDefinition}
+                            <Typography 
                               variant="body2"
-                            />
+                            >
+                              {term.cryptoDefinition}
+                            </Typography>
                             {term.examples && (
                               <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                {translateSync('Example:')} {term.examples[0]}
+                                Example: {term.examples[0]}
                               </Typography>
                             )}
                           </Box>
@@ -905,15 +889,16 @@ const CryptoGlossary: React.FC = () => {
                           <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 1, color: 'white' }}>
                             <Typography variant="h6" gutterBottom>
                               <TrendingUp size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
-                              <TranslatedText text={term.traditional} variant="span" />
+                              {term.traditional}
                             </Typography>
-                            <TranslatedText 
-                              text={term.traditionalDefinition}
+                            <Typography 
                               variant="body2"
-                            />
+                            >
+                              {term.traditionalDefinition}
+                            </Typography>
                             {term.examples && term.examples[1] && (
                               <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                {translateSync('Example:')} {term.examples[1]}
+                                Example: {term.examples[1]}
                               </Typography>
                             )}
                           </Box>
@@ -930,32 +915,32 @@ const CryptoGlossary: React.FC = () => {
         {/* Stats Footer */}
         <Paper sx={{ p: 3, borderRadius: 2, textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
-            {translateSync('Learning Progress')}
+            Learning Progress
           </Typography>
           <Grid container spacing={3} justifyContent="center">
             <Grid item>
               <Typography variant="h4" color="success.main">
                 {filteredTerms.filter(t => t.difficulty === 'Beginner').length}
               </Typography>
-              <Typography variant="body2">{translateSync('Beginner Terms')}</Typography>
+              <Typography variant="body2">Beginner Terms</Typography>
             </Grid>
             <Grid item>
               <Typography variant="h4" color="warning.main">
                 {filteredTerms.filter(t => t.difficulty === 'Intermediate').length}
               </Typography>
-              <Typography variant="body2">{translateSync('Intermediate Terms')}</Typography>
+              <Typography variant="body2">Intermediate Terms</Typography>
             </Grid>
             <Grid item>
               <Typography variant="h4" color="error.main">
                 {filteredTerms.filter(t => t.difficulty === 'Advanced').length}
               </Typography>
-              <Typography variant="body2">{translateSync('Advanced Terms')}</Typography>
+              <Typography variant="body2">Advanced Terms</Typography>
             </Grid>
             <Grid item>
               <Typography variant="h4" color="primary.main">
                 {filteredTerms.length}
               </Typography>
-              <Typography variant="body2">{translateSync('Total Showing')}</Typography>
+              <Typography variant="body2">Total Showing</Typography>
             </Grid>
           </Grid>
         </Paper>

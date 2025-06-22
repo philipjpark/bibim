@@ -14,27 +14,28 @@ import TokenIcon from '@mui/icons-material/Token';
 import SecurityIcon from '@mui/icons-material/Security';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LaunchIcon from '@mui/icons-material/Launch';
-import { useTranslation } from '../contexts/TranslationContext';
+import GavelIcon from '@mui/icons-material/Gavel';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
 const TokenLaunch: React.FC = () => {
   const theme = useTheme();
-  const { translateSync } = useTranslation();
 
-  const tokenFeatures = [
+  const features = [
     {
-      icon: <TokenIcon sx={{ fontSize: 40 }} />,
-      title: translateSync('Governance Rights'),
-      description: translateSync('BBM token holders can participate in platform governance and strategy voting.')
+      title: 'Governance Rights',
+      description: 'BBM token holders can participate in platform governance and strategy voting.',
+      icon: <GavelIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
-      icon: <SecurityIcon sx={{ fontSize: 40 }} />,
-      title: translateSync('Strategy Access'),
-      description: translateSync('Access to premium AI-powered trading strategies and backtesting tools.')
+      title: 'Strategy Access',
+      description: 'Access to premium AI-powered trading strategies and backtesting tools.',
+      icon: <PsychologyIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
-      icon: <TrendingUpIcon sx={{ fontSize: 40 }} />,
-      title: translateSync('Revenue Sharing'),
-      description: translateSync('Earn a share of platform fees and strategy performance rewards.')
+      title: 'Revenue Sharing',
+      description: 'Earn a share of platform fees and strategy performance rewards.',
+      icon: <MonetizationOnIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     }
   ];
 
@@ -59,30 +60,30 @@ const TokenLaunch: React.FC = () => {
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography
               variant="h2"
+              gutterBottom
               sx={{
                 fontFamily: '"Noto Sans KR", sans-serif',
                 fontWeight: 700,
-                color: 'primary.main',
-                mb: 2
+                color: 'white',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
               }}
             >
-              {translateSync('BBM Token Launch')}
+              BBM Token Launch
             </Typography>
             <Typography
               variant="h5"
               sx={{
-                color: 'text.secondary',
-                maxWidth: '800px',
-                mx: 'auto',
-                mb: 4
+                color: 'white',
+                mb: 4,
+                textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
               }}
             >
-              {translateSync('Join the future of AI-powered crypto trading with Bibim\'s native token')}
+              Join the future of AI-powered crypto trading with Bibim's native token
             </Typography>
           </Box>
 
           <Grid container spacing={4} sx={{ mb: 6 }}>
-            {tokenFeatures.map((feature, index) => (
+            {features.map((feature, index) => (
               <Grid item xs={12} md={4} key={index}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -136,21 +137,21 @@ const TokenLaunch: React.FC = () => {
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
-            <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
-              {translateSync('Token Sale Details')}
+            <Typography variant="h4" gutterBottom>
+              Token Sale Details
             </Typography>
-            <Grid container spacing={4} sx={{ mt: 2 }}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
-                <Typography variant="h6" gutterBottom>{translateSync('Total Supply')}</Typography>
-                <Typography variant="h4" color="primary.main">1,000,000,000 BBM</Typography>
+                <Typography variant="h6" gutterBottom>Total Supply</Typography>
+                <Typography variant="h4" color="primary.main">1,000,000 BBM</Typography>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="h6" gutterBottom>{translateSync('Initial Price')}</Typography>
+                <Typography variant="h6" gutterBottom>Initial Price</Typography>
                 <Typography variant="h4" color="primary.main">$0.10</Typography>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="h6" gutterBottom>{translateSync('Launch Date')}</Typography>
-                <Typography variant="h4" color="primary.main">Q2 2026</Typography>
+                <Typography variant="h6" gutterBottom>Launch Date</Typography>
+                <Typography variant="h4" color="primary.main">Q1 2024</Typography>
               </Grid>
             </Grid>
             <Button
@@ -168,7 +169,7 @@ const TokenLaunch: React.FC = () => {
                 }
               }}
             >
-              {translateSync('Join Waitlist')}
+              Join Waitlist
             </Button>
           </Box>
         </motion.div>

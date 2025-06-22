@@ -8,11 +8,9 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import TokenLaunch from '../components/TokenLaunch';
 import CryptoShakers from '../components/common/CryptoShakers';
-import { useTranslation } from '../contexts/TranslationContext';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { translateSync } = useTranslation();
 
   return (
     <Box>
@@ -64,7 +62,7 @@ const Home: React.FC = () => {
                       textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
                     }}
                   >
-                    {translateSync('Welcome to Bibim 🥘')}
+                    Welcome to Bibim 🥘
                   </Typography>
                 </motion.div>
                 <Typography 
@@ -76,7 +74,7 @@ const Home: React.FC = () => {
                   }} 
                   paragraph
                 >
-                  {translateSync('Your friendly AI-powered crypto trading companion. Mix your perfect strategy like bibimbap... more like cryptobap (크립토밥)!')}
+                  Your friendly AI-powered crypto trading companion. Mix your perfect strategy like bibimbap... more like cryptobap (크립토밥)!
                 </Typography>
                 <Button
                   variant="contained"
@@ -94,7 +92,7 @@ const Home: React.FC = () => {
                     fontSize: '1.1rem'
                   }}
                 >
-                  {translateSync('Start Mixing Your Strategy')}
+                  Start Mixing Your Strategy
                 </Button>
               </motion.div>
             </Grid>
@@ -120,7 +118,7 @@ const Home: React.FC = () => {
                   }}
                 >
                   <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
-                    {translateSync("Chef Trader's Prep Station")}
+                    Chef Trader's Prep Station
                   </Typography>
                   <CryptoShakers />
                 </Box>
@@ -143,25 +141,25 @@ const Home: React.FC = () => {
             mb: 6
           }}
         >
-          {translateSync('Why Choose Bibim?')}
+          Why Choose Bibim?
         </Typography>
         <Grid container spacing={4}>
           {[
             {
-              title: translateSync('AI-Powered Strategy Chef'),
-              description: translateSync('Our AI chef helps you create and optimize your trading strategies with precision.'),
+              title: 'AI-Powered Strategy Chef',
+              description: 'Our AI chef helps you create and optimize your trading strategies with precision.',
               icon: <PsychologyIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
               color: '#FF6B6B'
             },
             {
-              title: translateSync('Market Data Kitchen'),
-              description: translateSync('Access real-time market data and analytics to make informed decisions.'),
+              title: 'Market Data Kitchen',
+              description: 'Access real-time market data and analytics to make informed decisions.',
               icon: <TrendingUpIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
               color: '#4CAF50'
             },
             {
-              title: translateSync('Sentiment Analysis Spice'),
-              description: translateSync('Add market sentiment analysis to your strategy for that extra flavor.'),
+              title: 'Sentiment Analysis Spice',
+              description: 'Add market sentiment analysis to your strategy for that extra flavor.',
               icon: <SentimentSatisfiedAltIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
               color: '#FFB74D'
             },
@@ -200,12 +198,16 @@ const Home: React.FC = () => {
                       sx={{
                         fontFamily: '"Noto Sans KR", sans-serif',
                         fontWeight: 600,
-                        color: feature.color
+                        color: 'primary.main'
                       }}
                     >
                       {feature.title}
                     </Typography>
-                    <Typography color="text.secondary">
+                    <Typography 
+                      variant="body1" 
+                      color="text.secondary"
+                      sx={{ lineHeight: 1.6 }}
+                    >
                       {feature.description}
                     </Typography>
                   </Box>
@@ -219,28 +221,24 @@ const Home: React.FC = () => {
       {/* Token Launch Section */}
       <TokenLaunch />
 
-      {/* Signature at bottom of page */}
+      {/* Footer */}
       <Box
         sx={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          mt: 8,
-          mb: 2,
+          backgroundColor: 'primary.main',
+          color: 'white',
+          py: 4,
+          mt: 8
         }}
       >
-        <Typography
-          sx={{
-            fontFamily: '"Great Vibes", cursive',
-            fontSize: '1.1rem',
-            color: 'primary.main',
-            opacity: 0.9,
-            textShadow: '1px 1px 4px rgba(0,0,0,0.08)',
-            letterSpacing: 1.5,
-          }}
-        >
-          {translateSync('Created by: philxdaegu ')}
-        </Typography>
+        <Container>
+          <Typography 
+            variant="body2" 
+            align="center"
+            sx={{ opacity: 0.8 }}
+          >
+            Created by: philxdaegu 
+          </Typography>
+        </Container>
       </Box>
     </Box>
   );

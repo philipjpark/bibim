@@ -37,11 +37,9 @@ import {
   Speed as SpeedIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useTranslation } from '../contexts/TranslationContext';
 import geminiService, { StrategyAnalysis } from '../services/geminiService';
 
 const StrategyBuilder: React.FC = () => {
-  const { translateSync } = useTranslation();
   
   // Gemini API States
   const [userInput, setUserInput] = useState('');
@@ -285,11 +283,10 @@ This classic trend-following strategy uses two moving averages to identify entry
               fontFamily: '"Noto Sans KR", sans-serif',
               fontWeight: 700,
               color: 'primary.main',
-              mb: 4,
-              textAlign: 'center'
+              mb: 2
             }}
           >
-            {translateSync('Strategy Builder 🥘')} - AI Powered
+            Strategy Builder 🥘 - AI Powered
           </Typography>
         </motion.div>
 

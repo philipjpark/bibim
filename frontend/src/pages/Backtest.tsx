@@ -37,7 +37,6 @@ import {
 } from 'recharts';
 import BacktestResults from '../components/backtest/BacktestResults';
 import { strategyApi } from '../services/api';
-import { useTranslation } from '../contexts/TranslationContext';
 
 // Generate mock data for the chart
 const generateMockData = () => {
@@ -59,7 +58,6 @@ const generateMockData = () => {
 };
 
 const Backtest: React.FC = () => {
-  const { translateSync } = useTranslation();
   const [timeframe, setTimeframe] = useState('1d');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -127,7 +125,7 @@ const Backtest: React.FC = () => {
               mb: 4
             }}
           >
-            {translateSync('Strategy Backtest')}
+            Strategy Backtest
           </Typography>
         </motion.div>
 
@@ -149,28 +147,28 @@ const Backtest: React.FC = () => {
                 }}
               >
                 <Typography variant="h5" sx={{ fontFamily: '"Noto Sans KR", sans-serif', mb: 3 }}>
-                  {translateSync('Backtest Configuration')}
+                  Backtest Configuration
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <FormControl fullWidth>
-                    <InputLabel>{translateSync('Timeframe')}</InputLabel>
+                    <InputLabel>Timeframe</InputLabel>
                     <Select
                       value={timeframe}
-                      label={translateSync('Timeframe')}
+                      label="Timeframe"
                       onChange={(e) => setTimeframe(e.target.value)}
                     >
-                      <MenuItem value="1m">{translateSync('1 Minute')}</MenuItem>
-                      <MenuItem value="5m">{translateSync('5 Minutes')}</MenuItem>
-                      <MenuItem value="15m">{translateSync('15 Minutes')}</MenuItem>
-                      <MenuItem value="1h">{translateSync('1 Hour')}</MenuItem>
-                      <MenuItem value="4h">{translateSync('4 Hours')}</MenuItem>
-                      <MenuItem value="1d">{translateSync('1 Day')}</MenuItem>
+                      <MenuItem value="1m">1 Minute</MenuItem>
+                      <MenuItem value="5m">5 Minutes</MenuItem>
+                      <MenuItem value="15m">15 Minutes</MenuItem>
+                      <MenuItem value="1h">1 Hour</MenuItem>
+                      <MenuItem value="4h">4 Hours</MenuItem>
+                      <MenuItem value="1d">1 Day</MenuItem>
                     </Select>
                   </FormControl>
 
                   <TextField
-                    label={translateSync('Start Date')}
+                    label="Start Date"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
@@ -179,7 +177,7 @@ const Backtest: React.FC = () => {
                   />
 
                   <TextField
-                    label={translateSync('End Date')}
+                    label="End Date"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -195,7 +193,7 @@ const Backtest: React.FC = () => {
                     onClick={handleRunBacktest}
                     disabled={loading}
                   >
-                    {loading ? translateSync('Running...') : translateSync('Run Backtest')}
+                    {loading ? 'Running...' : 'Run Backtest'}
                   </Button>
                 </Box>
               </Paper>
@@ -220,15 +218,15 @@ const Backtest: React.FC = () => {
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>
-                    {translateSync('Backtest Results')}
+                    Backtest Results
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title={translateSync('Save Results')}>
+                    <Tooltip title="Save Results">
                       <IconButton>
                         <SaveIcon />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title={translateSync('Share Results')}>
+                    <Tooltip title="Share Results">
                       <IconButton>
                         <ShareIcon />
                       </IconButton>
@@ -239,15 +237,15 @@ const Backtest: React.FC = () => {
                 {/* Chart Section */}
                 <Box sx={{ height: 300, mb: 4 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">{translateSync('Price Chart')}</Typography>
+                    <Typography variant="h6">Price Chart</Typography>
                     <ToggleButtonGroup
                       value={chartType}
                       exclusive
                       onChange={(e, value) => value && setChartType(value)}
                       size="small"
                     >
-                      <ToggleButton value="candlestick">{translateSync('Candlestick')}</ToggleButton>
-                      <ToggleButton value="line">{translateSync('Line')}</ToggleButton>
+                      <ToggleButton value="candlestick">Candlestick</ToggleButton>
+                      <ToggleButton value="line">Line</ToggleButton>
                     </ToggleButtonGroup>
                   </Box>
                   <ResponsiveContainer width="100%" height="100%">
@@ -290,7 +288,7 @@ const Backtest: React.FC = () => {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                           <ShowChartIcon />
-                          <Typography variant="h6">{translateSync('Total Return')}</Typography>
+                          <Typography variant="h6">Total Return</Typography>
                         </Box>
                         <Typography variant="h4">{mockResults.totalProfit}%</Typography>
                       </CardContent>
@@ -301,7 +299,7 @@ const Backtest: React.FC = () => {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                           <TrendingUpIcon />
-                          <Typography variant="h6">{translateSync('Win Rate')}</Typography>
+                          <Typography variant="h6">Win Rate</Typography>
                         </Box>
                         <Typography variant="h4">{mockResults.winRate * 100}%</Typography>
                       </CardContent>
@@ -310,12 +308,12 @@ const Backtest: React.FC = () => {
                 </Grid>
 
                 <Box sx={{ mt: 4 }}>
-                  <Typography variant="h6" gutterBottom>{translateSync('Performance Metrics')}</Typography>
+                  <Typography variant="h6" gutterBottom>Performance Metrics</Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ mb: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">{translateSync('Profit Factor')}</Typography>
+                          <Typography variant="body2">Profit Factor</Typography>
                           <Typography variant="body2">{mockResults.profitFactor}</Typography>
                         </Box>
                         <LinearProgress 
@@ -336,7 +334,7 @@ const Backtest: React.FC = () => {
                     <Grid item xs={12} sm={6}>
                       <Box sx={{ mb: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">{translateSync('Sharpe Ratio')}</Typography>
+                          <Typography variant="body2">Sharpe Ratio</Typography>
                           <Typography variant="body2">{mockResults.sharpeRatio}</Typography>
                         </Box>
                         <LinearProgress 

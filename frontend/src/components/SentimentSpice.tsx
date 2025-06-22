@@ -17,7 +17,6 @@ import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { useTranslation } from '../contexts/TranslationContext';
 
 interface SentimentData {
   source: string;
@@ -28,8 +27,6 @@ interface SentimentData {
 }
 
 const SentimentSpice: React.FC = () => {
-  const { translateSync } = useTranslation();
-  
   // Simulated sentiment data
   const sentimentData: SentimentData[] = [
     {
@@ -97,10 +94,10 @@ const SentimentSpice: React.FC = () => {
             <RestaurantIcon />
           </Avatar>
           <Typography variant="h5" sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>
-            {translateSync('Sentiment Spice')}
+            Sentiment Spice
           </Typography>
         </Box>
-        <Tooltip title={translateSync('Refresh Sentiment')}>
+        <Tooltip title="Refresh Sentiment">
           <IconButton>
             <RefreshIcon />
           </IconButton>
@@ -132,7 +129,7 @@ const SentimentSpice: React.FC = () => {
                       </Typography>
                     </Box>
                     <Chip 
-                      label={translateSync(data.sentiment)}
+                      label={data.sentiment}
                       size="small"
                       sx={{ 
                         backgroundColor: getSentimentColor(data.sentiment),
@@ -165,7 +162,7 @@ const SentimentSpice: React.FC = () => {
                       color="text.secondary"
                       sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
                     >
-                      {translateSync('Confidence')}: {(data.confidence * 100).toFixed(0)}%
+                      Confidence: {(data.confidence * 100).toFixed(0)}%
                     </Typography>
                   </Box>
                 </CardContent>

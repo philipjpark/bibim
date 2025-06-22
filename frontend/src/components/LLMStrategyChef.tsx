@@ -44,7 +44,6 @@ import {
   Security as SecurityIcon,
   Timeline as TimelineIcon
 } from '@mui/icons-material';
-import { useTranslation } from '../contexts/TranslationContext';
 import geminiService, { StrategyAnalysis } from '../services/geminiService';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -82,12 +81,11 @@ const LLMStrategyChef: React.FC = () => {
   // Debug logging
   console.log('🔍 LLMStrategyChef component is rendering!');
   
-  const { translateSync } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: translateSync('strategy_chef_welcome'),
+      content: 'Welcome to Strategy Chef!',
       timestamp: new Date()
     }
   ]);
@@ -341,7 +339,7 @@ Please note: This is a fallback strategy. The AI service will provide more sophi
               <RestaurantIcon />
             </Avatar>
             <Typography variant="h5" sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>
-              {translateSync('Strategy Chef')} ✨
+              Strategy Chef
             </Typography>
           </Box>
           <Button
@@ -527,7 +525,7 @@ Please note: This is a fallback strategy. The AI service will provide more sophi
             <TextField
               fullWidth
               variant="outlined"
-              placeholder={translateSync('Tell me about your trading strategy...')}
+              placeholder="Tell me about your trading strategy..."
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}

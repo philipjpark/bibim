@@ -16,7 +16,6 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { useTranslation } from '../contexts/TranslationContext';
 
 interface MarketData {
   symbol: string;
@@ -27,8 +26,6 @@ interface MarketData {
 }
 
 const MarketDataKitchen: React.FC = () => {
-  const { translateSync } = useTranslation();
-  
   // Simulated market data
   const marketData: MarketData[] = [
     {
@@ -70,10 +67,10 @@ const MarketDataKitchen: React.FC = () => {
             <RestaurantIcon />
           </Avatar>
           <Typography variant="h5" sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>
-            {translateSync('Market Data Kitchen')}
+            Market Data Kitchen
           </Typography>
         </Box>
-        <Tooltip title={translateSync('Refresh Data')}>
+        <Tooltip title="Refresh Data">
           <IconButton>
             <RefreshIcon />
           </IconButton>
@@ -106,7 +103,7 @@ const MarketDataKitchen: React.FC = () => {
                       color="text.secondary"
                       sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
                     >
-                      {translateSync('Updated')} {data.lastUpdate}
+                      Updated {data.lastUpdate}
                     </Typography>
                   </Box>
                   
@@ -130,7 +127,7 @@ const MarketDataKitchen: React.FC = () => {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Typography variant="body2" color="text.secondary">
-                      {translateSync('Volume')}
+                      Volume
                     </Typography>
                     <LinearProgress 
                       variant="determinate" 

@@ -11,13 +11,10 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TranslationButton from './TranslationButton';
-import { useTranslation } from '../contexts/TranslationContext';
 import bibimLogo from '../assets/images/bibim.png';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
-  const { translateSync } = useTranslation();
 
   return (
     <AppBar 
@@ -54,7 +51,7 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              {translateSync('Dashboard')}
+              Dashboard
             </Button>
             <Button
               component={RouterLink}
@@ -66,7 +63,7 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              {translateSync('Strategy Builder')}
+              Strategy Builder
             </Button>
             <Button
               component={RouterLink}
@@ -78,7 +75,7 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              {translateSync('Backtest')}
+              Backtest
             </Button>
             <Button
               component={RouterLink}
@@ -90,7 +87,7 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              {translateSync('Crypto Guide')}
+              Crypto Guide
             </Button>
             <Button
               component={RouterLink}
@@ -102,7 +99,7 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              {translateSync('Research Corpus Manager')}
+              Research Corpus Manager
             </Button>
             
             {/* Divider between nav items and translation button */}
@@ -116,37 +113,6 @@ const Navbar: React.FC = () => {
                 alignSelf: 'center'
               }} 
             />
-            
-            {/* Translation Button */}
-            <Box 
-              sx={{ 
-                ml: 1,
-                '& .MuiChip-root': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                  },
-                  '& .MuiChip-icon': {
-                    color: 'white',
-                  }
-                },
-                '& .MuiMenu-paper': {
-                  backgroundColor: 'white',
-                  '& .MuiMenuItem-root': {
-                    color: theme.palette.text.primary,
-                  }
-                }
-              }}
-            >
-              <TranslationButton 
-                variant="chip" 
-                size="small"
-                showLanguageName={false}
-                showFlag={true}
-              />
-            </Box>
           </Box>
         </Toolbar>
       </Container>
