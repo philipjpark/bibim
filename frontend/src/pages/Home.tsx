@@ -74,7 +74,7 @@ const Home: React.FC = () => {
                   }} 
                   paragraph
                 >
-                  Your friendly AI-powered crypto trading companion. Mix your perfect strategy like bibimbap... more like cryptobap (크립토밥)!
+                  Your friendly AI-powered crypto trading companion. Mix your perfect strategy like bibimbap (a Korean rice dish that's a mix of rice, vegetables, and meat).
                 </Typography>
                 <Button
                   variant="contained"

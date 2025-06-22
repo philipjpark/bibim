@@ -24,7 +24,7 @@ const TokenLaunch: React.FC = () => {
   const features = [
     {
       title: 'Governance Rights',
-      description: 'BBM token holders can participate in platform governance and strategy voting.',
+      description: 'BIBIM token holders can participate in platform governance and strategy voting.',
       icon: <GavelIcon sx={{ fontSize: 40, color: 'primary.main' }} />
     },
     {
@@ -63,17 +63,17 @@ const TokenLaunch: React.FC = () => {
               gutterBottom
               sx={{
                 fontFamily: '"Noto Sans KR", sans-serif',
-                fontWeight: 700,
-                color: 'white',
+                fontWeight: 400,
+                color: 'primary.main',
                 textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
               }}
             >
-              BBM Token Launch
+              BIBIM Token Launch
             </Typography>
             <Typography
               variant="h5"
               sx={{
-                color: 'white',
+                color: 'primary.main',
                 mb: 4,
                 textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
               }}
@@ -143,7 +143,7 @@ const TokenLaunch: React.FC = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
                 <Typography variant="h6" gutterBottom>Total Supply</Typography>
-                <Typography variant="h4" color="primary.main">1,000,000 BBM</Typography>
+                <Typography variant="h4" color="primary.main">1,000,000 BIBIM</Typography>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Typography variant="h6" gutterBottom>Initial Price</Typography>
