@@ -36,6 +36,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { strategyApi, llmApi } from '../../services/api';
 import SentimentAnalysis from './SentimentAnalysis';
+import TokenSelector from './TokenSelector';
+import TradingViewWidget from './TradingViewWidget';
+import BacktestResults from './BacktestResults';
 import geminiService from '../../services/geminiService';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { 
@@ -56,6 +59,7 @@ import {
 } from '@mui/icons-material';
 import strategyService, { StrategyConfig } from '../../services/strategyService';
 import emergentMindsService, { EmergentMindsPaper, EmergentMindsTrendingPaper } from '../../services/emergentMindsService';
+import { SolanaToken } from '../../services/solanaTokensService';
 
 interface StrategyParameters {
   coin: string;
@@ -202,10 +206,12 @@ const StrategyBuilder: React.FC = () => {
     }
   });
   const [selectedProvenStrategy, setSelectedProvenStrategy] = useState<string>('');
-  const [customModifications, setCustomModifications] = useState<string>('');
+  const [customModifications, setCustomModifications] = useState('');
+  const [selectedToken, setSelectedToken] = useState<SolanaToken | null>(null);
 
   const steps = [
-    'Select Asset & Strategy',
+    'Select Token',
+    'Market Sentiment Analysis',
     'Research Integration',
     'Define Parameters',
     'Risk Management',
@@ -266,6 +272,14 @@ const StrategyBuilder: React.FC = () => {
       setParameters(strategy.baseParameters);
       setSelectedProvenStrategy(strategyId);
     }
+  };
+
+  const handleTokenSelect = (token: SolanaToken) => {
+    setSelectedToken(token);
+    setParameters(prev => ({
+      ...prev,
+      coin: token.symbol
+    }));
   };
 
   const handleResearchPromptGenerated = (prompt: string) => {
@@ -464,39 +478,44 @@ Please analyze this strategy configuration and provide:
     switch (step) {
       case 0:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Select Asset</InputLabel>
-                <Select
-                  value={parameters.coin}
-                  label="Select Asset"
-                  onChange={(e) => handleParameterChange('coin', e.target.value)}
-                >
-                  <MenuItem value="SOL">Solana (SOL)</MenuItem>
-                  <MenuItem value="BTC">Bitcoin (BTC)</MenuItem>
-                  <MenuItem value="ETH">Ethereum (ETH)</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Strategy Type</InputLabel>
-                <Select
-                  value={parameters.strategyType}
-                  label="Strategy Type"
-                  onChange={(e) => handleParameterChange('strategyType', e.target.value)}
-                >
-                  <MenuItem value="breakout">Breakout Strategy</MenuItem>
-                  <MenuItem value="trend">Trend Following</MenuItem>
-                  <MenuItem value="mean_reversion">Mean Reversion</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Select a Solana Token
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Choose a token from the Solana ecosystem to build your trading strategy around.
+            </Typography>
+            <TokenSelector onTokenSelect={handleTokenSelect} />
+            {selectedToken && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  Selected: <strong>{selectedToken.name} ({selectedToken.symbol})</strong> - {selectedToken.description}
+                </Typography>
+              </Alert>
+            )}
+          </Box>
         );
 
       case 1:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Market Sentiment Analysis
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Analyze market sentiment for {selectedToken?.symbol || 'selected token'} using AI-powered analysis of Discord, social media, news, and technical indicators.
+            </Typography>
+            {selectedToken ? (
+              <SentimentAnalysis asset={selectedToken.symbol} />
+            ) : (
+              <Alert severity="warning">
+                Please select a token first to analyze sentiment.
+              </Alert>
+            )}
+          </Box>
+        );
+
+      case 2:
         return (
           <Box>
             <Paper
@@ -764,9 +783,23 @@ Please analyze this strategy configuration and provide:
           </Box>
         );
 
-      case 2:
+      case 3:
         return (
           <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Strategy Type</InputLabel>
+                <Select
+                  value={parameters.strategyType}
+                  label="Strategy Type"
+                  onChange={(e) => handleParameterChange('strategyType', e.target.value)}
+                >
+                  <MenuItem value="breakout">Breakout Strategy</MenuItem>
+                  <MenuItem value="trend">Trend Following</MenuItem>
+                  <MenuItem value="mean_reversion">Mean Reversion</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Breakout Condition</InputLabel>
@@ -801,6 +834,7 @@ Please analyze this strategy configuration and provide:
                   label="Timeframe"
                   onChange={(e) => handleParameterChange('timeframe', e.target.value)}
                 >
+                  <MenuItem value="1m">1 Minute</MenuItem>
                   <MenuItem value="5m">5 Minutes</MenuItem>
                   <MenuItem value="15m">15 Minutes</MenuItem>
                   <MenuItem value="1h">1 Hour</MenuItem>
@@ -826,7 +860,7 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 3:
+      case 4:
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
@@ -868,7 +902,7 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 4:
+      case 5:
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -971,7 +1005,7 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 5:
+      case 6:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1126,7 +1160,7 @@ Please analyze this strategy configuration and provide:
           </Box>
         );
 
-      case 6:
+      case 7:
         return (
           <Box>
             {/* Success Header with Animation */}
@@ -1562,10 +1596,6 @@ Please analyze this strategy configuration and provide:
             >
               {apiTestResult}
             </Alert>
-          )}
-
-          {parameters.coin && (
-            <SentimentAnalysis asset={parameters.coin} />
           )}
 
           <Paper

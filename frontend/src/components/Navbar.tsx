@@ -66,18 +66,6 @@ const Navbar: React.FC = () => {
             >
               Strategy Builder
             </Button>
-            <Button
-              component={RouterLink}
-              to="/backtest"
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              }}
-            >
-              Backtest
-            </Button>
             
             {/* Divider between nav items and wallet */}
             <Divider 
