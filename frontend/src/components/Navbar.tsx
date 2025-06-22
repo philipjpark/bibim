@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import WalletConnect from './WalletConnect';
 import bibimLogo from '../assets/images/bibim.png';
 
 const Navbar: React.FC = () => {
@@ -77,32 +78,8 @@ const Navbar: React.FC = () => {
             >
               Backtest
             </Button>
-            <Button
-              component={RouterLink}
-              to="/crypto-glossary"
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              }}
-            >
-              Crypto Guide
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/research-corpus"
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              }}
-            >
-              Research Corpus Manager
-            </Button>
             
-            {/* Divider between nav items and translation button */}
+            {/* Divider between nav items and wallet */}
             <Divider 
               orientation="vertical" 
               flexItem 
@@ -113,6 +90,9 @@ const Navbar: React.FC = () => {
                 alignSelf: 'center'
               }} 
             />
+            
+            {/* Wallet Connect */}
+            <WalletConnect />
           </Box>
         </Toolbar>
       </Container>

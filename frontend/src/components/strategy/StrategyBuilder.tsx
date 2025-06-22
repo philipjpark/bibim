@@ -17,13 +17,45 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Alert
+  Alert,
+  Tabs,
+  Tab,
+  Chip,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Checkbox
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { strategyApi, llmApi } from '../../services/api';
 import SentimentAnalysis from './SentimentAnalysis';
 import geminiService from '../../services/geminiService';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { 
+  PlayArrow as DeployIcon, 
+  ContentCopy as ContentCopyIcon, 
+  Code as CodeIcon, 
+  Science as ScienceIcon,
+  Search as SearchIcon,
+  TrendingUp as TrendingUpIcon,
+  Bookmark as BookmarkIcon,
+  BookmarkBorder as BookmarkBorderIcon,
+  ExpandMore as ExpandMoreIcon,
+  Twitter as TwitterIcon,
+  Reddit as RedditIcon,
+  GitHub as GitHubIcon,
+  OpenInNew as OpenInNewIcon,
+  AutoAwesome as AutoAwesomeIcon
+} from '@mui/icons-material';
+import strategyService, { StrategyConfig } from '../../services/strategyService';
+import emergentMindsService, { EmergentMindsPaper, EmergentMindsTrendingPaper } from '../../services/emergentMindsService';
 
 interface StrategyParameters {
   coin: string;
@@ -129,6 +161,7 @@ const provenStrategies: ProvenStrategy[] = [
 
 const StrategyBuilder: React.FC = () => {
   const navigate = useNavigate();
+  const { connected, wallet } = useWallet();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -137,6 +170,17 @@ const StrategyBuilder: React.FC = () => {
   // Add API test state
   const [apiTestResult, setApiTestResult] = useState<string | null>(null);
   const [apiTesting, setApiTesting] = useState(false);
+
+  // Add research integration state
+  const [researchPrompt, setResearchPrompt] = useState<string>('');
+  const [useResearchPrompt, setUseResearchPrompt] = useState(false);
+  const [activeResearchTab, setActiveResearchTab] = useState(0);
+  const [researchPapers, setResearchPapers] = useState<EmergentMindsPaper[]>([]);
+  const [trendingPapers, setTrendingPapers] = useState<EmergentMindsTrendingPaper[]>([]);
+  const [selectedPapers, setSelectedPapers] = useState<Set<string>>(new Set());
+  const [researchSearchQuery, setResearchSearchQuery] = useState('');
+  const [researchLoading, setResearchLoading] = useState(false);
+  const [researchError, setResearchError] = useState('');
 
   const [parameters, setParameters] = useState<StrategyParameters>({
     coin: 'SOL',
@@ -162,6 +206,7 @@ const StrategyBuilder: React.FC = () => {
 
   const steps = [
     'Select Asset & Strategy',
+    'Research Integration',
     'Define Parameters',
     'Risk Management',
     'Instant Swap Settings',
@@ -223,7 +268,114 @@ const StrategyBuilder: React.FC = () => {
     }
   };
 
+  const handleResearchPromptGenerated = (prompt: string) => {
+    setResearchPrompt(prompt);
+    setUseResearchPrompt(true);
+    setActiveResearchTab(0); // Switch back to strategy builder
+  };
+
+  const searchResearchPapers = async () => {
+    if (!researchSearchQuery.trim()) return;
+    
+    setResearchLoading(true);
+    setResearchError('');
+    
+    try {
+      const papers = await emergentMindsService.searchPapers({
+        query: researchSearchQuery,
+        category: 'all',
+        timeframe: 'all'
+      });
+      setResearchPapers(papers);
+    } catch (err: any) {
+      setResearchError(err.message || 'Failed to search research papers');
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
+  const loadTrendingPapers = async () => {
+    setResearchLoading(true);
+    setResearchError('');
+    
+    try {
+      const trending = await emergentMindsService.getTrendingPapers();
+      setTrendingPapers(trending);
+    } catch (err: any) {
+      setResearchError(err.message || 'Failed to load trending papers');
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
+  const togglePaperSelection = (paperId: string) => {
+    const newSelected = new Set(selectedPapers);
+    if (newSelected.has(paperId)) {
+      newSelected.delete(paperId);
+    } else {
+      newSelected.add(paperId);
+    }
+    setSelectedPapers(newSelected);
+  };
+
+  const generateResearchPrompt = async () => {
+    if (selectedPapers.size === 0) {
+      setResearchError('Please select at least one research paper');
+      return;
+    }
+
+    setResearchLoading(true);
+    setResearchError('');
+
+    try {
+      const selectedPaperData = researchPapers.filter(paper => selectedPapers.has(paper.id));
+      
+      const prompt = `[RESEARCH-BASED STRATEGY GENERATION]
+
+Selected Research Papers from Emergent Mind:
+${selectedPaperData.map(paper => `
+- ${paper.title} (Relevance: ${(paper.relevanceScore * 100).toFixed(0)}%)
+  Authors: ${paper.authors.join(', ')}
+  Summary: ${paper.summary}
+  Categories: ${paper.categories?.join(', ') || 'Uncategorized'}
+  Citations: ${paper.citations || 0}
+  Social Engagement: ${paper.socialEngagement ? 
+    `Twitter: ${paper.socialEngagement.twitter || 0}, Reddit: ${paper.socialEngagement.reddit || 0}` : 
+    'N/A'
+  }
+`).join('\n')}
+
+Strategy Context: ${parameters.coin} ${parameters.strategyType} strategy with ${parameters.timeframe} timeframe
+
+[INSTRUCTION]
+Based on the selected research papers from Emergent Mind and their findings, generate a comprehensive trading strategy that incorporates:
+1. Key insights from the research papers
+2. Evidence-based approaches supported by the studies
+3. Risk management techniques derived from the research
+4. Technical indicators and methodologies validated by the papers
+5. Behavioral finance considerations from the research
+6. Quantitative models and statistical approaches mentioned
+7. Specific recommendations for implementation
+
+Please provide a detailed strategy that leverages the academic insights while remaining practical for real-world trading.`;
+
+      setResearchPrompt(prompt);
+      setUseResearchPrompt(true);
+      setActiveResearchTab(1); // Switch to generated prompt tab
+    } catch (err: any) {
+      setResearchError(err.message || 'Failed to generate research prompt');
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
   const generateStrategyString = () => {
+    // If using research prompt, use it directly
+    if (useResearchPrompt && researchPrompt) {
+      return researchPrompt;
+    }
+
+    // Otherwise, use the original logic
     const baseStrategy = selectedProvenStrategy 
       ? provenStrategies.find(s => s.id === selectedProvenStrategy)?.description || 'Custom Strategy'
       : `This is my trading strategy: Coin=${parameters.coin} Strategy=${parameters.strategyType} Breakout=${parameters.percentageIncrease}% TimeFrame=${parameters.timeframe} Volume=${parameters.volumeCondition} StopLoss=${parameters.riskManagement.stopLoss}% TakeProfit=${parameters.riskManagement.takeProfit}% PositionSize=${parameters.riskManagement.positionSize}%`;
@@ -346,6 +498,274 @@ Please analyze this strategy configuration and provide:
 
       case 1:
         return (
+          <Box>
+            <Paper
+              elevation={2}
+              sx={{
+                borderRadius: 2,
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                overflow: 'hidden'
+              }}
+            >
+              <Tabs
+                value={activeResearchTab}
+                onChange={(e, newValue) => setActiveResearchTab(newValue)}
+                sx={{
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  '& .MuiTab-root': {
+                    minHeight: 64,
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }
+                }}
+              >
+                <Tab
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <SearchIcon />
+                      Research Papers
+                    </Box>
+                  } 
+                />
+                <Tab
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ContentCopyIcon />
+                      Generated Prompt
+                    </Box>
+                  } 
+                />
+              </Tabs>
+
+              <Box sx={{ p: 3 }}>
+                {activeResearchTab === 0 && (
+                  <Box>
+                    <Typography variant="h6" gutterBottom>
+                      Research Integration with Emergent Mind
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Search and select research papers from Emergent Mind to create evidence-based trading strategies.
+                    </Typography>
+
+                    {/* Search Section */}
+                    <Card sx={{ mb: 3 }}>
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Search Research Papers
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                          <TextField
+                            fullWidth
+                            placeholder="Search for research papers (e.g., 'cryptocurrency volatility', 'DeFi yield strategies')"
+                            value={researchSearchQuery}
+                            onChange={(e) => setResearchSearchQuery(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && searchResearchPapers()}
+                          />
+                          <Button
+                            variant="contained"
+                            onClick={searchResearchPapers}
+                            disabled={researchLoading}
+                            startIcon={<SearchIcon />}
+                          >
+                            Search
+                          </Button>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          onClick={loadTrendingPapers}
+                          disabled={researchLoading}
+                          startIcon={<TrendingUpIcon />}
+                          sx={{ mr: 1 }}
+                        >
+                          Load Trending Papers
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Error Display */}
+                    {researchError && (
+                      <Alert severity="error" sx={{ mb: 2 }}>
+                        {researchError}
+                      </Alert>
+                    )}
+
+                    {/* Papers Display */}
+                    {researchLoading ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : (researchPapers.length > 0 || trendingPapers.length > 0) ? (
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          <Typography variant="subtitle1">
+                            Available Papers ({selectedPapers.size} selected)
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            onClick={generateResearchPrompt}
+                            disabled={selectedPapers.size === 0}
+                            startIcon={<AutoAwesomeIcon />}
+                          >
+                            Generate Strategy Prompt
+                          </Button>
+                        </Box>
+
+                        <List>
+                          {(researchPapers.length > 0 ? researchPapers : trendingPapers).map((paper) => {
+                            // Handle different paper types
+                            const isTrendingPaper = 'socialEngagement' in paper && paper.socialEngagement && 'total' in paper.socialEngagement;
+                            const relevanceScore = isTrendingPaper ? 0.85 : (paper as EmergentMindsPaper).relevanceScore;
+                            const citations = isTrendingPaper ? 0 : (paper as EmergentMindsPaper).citations;
+                            const url = isTrendingPaper ? `https://arxiv.org/abs/${(paper as EmergentMindsTrendingPaper).arxivId}` : (paper as EmergentMindsPaper).url;
+                            
+                            return (
+                              <ListItem
+                                key={paper.id}
+                                sx={{
+                                  border: 1,
+                                  borderColor: selectedPapers.has(paper.id) ? 'primary.main' : 'divider',
+                                  borderRadius: 1,
+                                  mb: 1,
+                                  background: selectedPapers.has(paper.id) ? 'primary.light' : 'transparent',
+                                  '&:hover': {
+                                    background: selectedPapers.has(paper.id) ? 'primary.light' : 'action.hover',
+                                  }
+                                }}
+                              >
+                                <ListItemIcon>
+                                  <Checkbox
+                                    checked={selectedPapers.has(paper.id)}
+                                    onChange={() => togglePaperSelection(paper.id)}
+                                  />
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                        {paper.title}
+                                      </Typography>
+                                      <Chip
+                                        label={`${(relevanceScore * 100).toFixed(0)}%`}
+                                        size="small"
+                                        color="primary"
+                                        variant="outlined"
+                                      />
+                                    </Box>
+                                  }
+                                  secondary={
+                                    <Box>
+                                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        <strong>Authors:</strong> {paper.authors.join(', ')}
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ mb: 1 }}>
+                                        {paper.summary}
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                        {paper.categories?.map((category) => (
+                                          <Chip
+                                            key={category}
+                                            label={category}
+                                            size="small"
+                                            variant="outlined"
+                                          />
+                                        ))}
+                                      </Box>
+                                      <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                          Citations: {citations || 0}
+                                        </Typography>
+                                        {paper.socialEngagement && (
+                                          <>
+                                            <Typography variant="caption" color="text.secondary">
+                                              Twitter: {paper.socialEngagement.twitter || 0}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                              Reddit: {paper.socialEngagement.reddit || 0}
+                                            </Typography>
+                                          </>
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  }
+                                />
+                                <ListItemSecondaryAction>
+                                  <IconButton
+                                    edge="end"
+                                    onClick={() => window.open(url, '_blank')}
+                                    title="View paper"
+                                  >
+                                    <OpenInNewIcon />
+                                  </IconButton>
+                                </ListItemSecondaryAction>
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      </Box>
+                    ) : (
+                      <Alert severity="info">
+                        Search for research papers or load trending papers to get started with research-based strategy generation.
+                      </Alert>
+                    )}
+                  </Box>
+                )}
+                {activeResearchTab === 1 && (
+                  <Box>
+                    <Typography variant="h6" gutterBottom>
+                      Research-Driven Strategy Prompt
+                    </Typography>
+                    {researchPrompt ? (
+                      <Card sx={{ mb: 2 }}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                              Generated Prompt
+                            </Typography>
+                            <Button
+                              size="small"
+                              startIcon={<ContentCopyIcon />}
+                              onClick={() => navigator.clipboard.writeText(researchPrompt)}
+                            >
+                              Copy
+                            </Button>
+                          </Box>
+                          <Box
+                            sx={{
+                              background: '#f5f5f5',
+                              p: 2,
+                              borderRadius: 1,
+                              maxHeight: 400,
+                              overflow: 'auto',
+                              '& pre': {
+                                margin: 0,
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                fontFamily: 'monospace',
+                                fontSize: '0.875rem',
+                                lineHeight: 1.5,
+                              }
+                            }}
+                          >
+                            <pre>{researchPrompt}</pre>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Alert severity="info">
+                        No research prompt generated yet. Use the Research Papers tab to search and select papers, then generate a research-driven strategy prompt.
+                      </Alert>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+          </Box>
+        );
+
+      case 2:
+        return (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
@@ -406,7 +826,7 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 2:
+      case 3:
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
@@ -448,7 +868,7 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 3:
+      case 4:
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -551,12 +971,20 @@ Please analyze this strategy configuration and provide:
           </Grid>
         );
 
-      case 4:
+      case 5:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
               Strategy Review & Generation
             </Typography>
+
+            {useResearchPrompt && researchPrompt && (
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  <strong>Research-Driven Strategy:</strong> Your strategy will be generated using research corpus insights.
+                </Typography>
+              </Alert>
+            )}
 
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -698,7 +1126,7 @@ Please analyze this strategy configuration and provide:
           </Box>
         );
 
-      case 5:
+      case 6:
         return (
           <Box>
             {/* Success Header with Animation */}
@@ -793,6 +1221,7 @@ Please analyze this strategy configuration and provide:
                       </Typography>
                       <Typography variant="body1" sx={{ opacity: 0.9 }}>
                         {parameters.coin} • {parameters.strategyType} • {parameters.timeframe}
+                        {useResearchPrompt && ' • Research-Driven'}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -985,6 +1414,96 @@ Please analyze this strategy configuration and provide:
                 </Grid>
               </Grid>
             </motion.div>
+
+            {/* Generated Strategy Display */}
+            {llmResponse && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Card sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                        Generated Strategy
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          size="small"
+                          startIcon={<ContentCopyIcon />}
+                          onClick={() => {
+                            navigator.clipboard.writeText(llmResponse.message || '');
+                            // You could add a toast notification here
+                          }}
+                        >
+                          Copy
+                        </Button>
+                        <Button
+                          size="small"
+                          startIcon={<CodeIcon />}
+                          onClick={() => {
+                            // Generate backtest code logic
+                            console.log('Generating backtest code...');
+                          }}
+                          disabled={loading}
+                        >
+                          Generate Code
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<DeployIcon />}
+                          onClick={async () => {
+                            if (!connected) {
+                              setError('Please connect your wallet to deploy strategy');
+                              return;
+                            }
+                            
+                            setLoading(true);
+                            try {
+                              // Initialize strategy service
+                              await strategyService.initializeProgram(wallet);
+                              
+                              // Convert parameters to strategy config
+                              const strategyConfig: StrategyConfig = {
+                                asset: parameters.coin,
+                                strategyType: parameters.strategyType,
+                                timeframe: parameters.timeframe,
+                                stopLoss: parameters.riskManagement.stopLoss,
+                                takeProfit: parameters.riskManagement.takeProfit,
+                                positionSize: parameters.riskManagement.positionSize,
+                                volumeCondition: parameters.volumeCondition,
+                                breakoutCondition: parameters.breakoutCondition,
+                              };
+                              
+                              // Deploy strategy to Solana
+                              const deployedStrategy = await strategyService.deployStrategy(
+                                wallet,
+                                `BIBIM ${parameters.coin} Strategy`,
+                                strategyConfig
+                              );
+                              
+                              console.log('Strategy deployed successfully:', deployedStrategy);
+                              setError('Strategy deployed to Solana successfully!');
+                            } catch (err: any) {
+                              console.error('Strategy deployment failed:', err);
+                              setError(err.message || 'Failed to deploy strategy to Solana');
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={loading || !connected}
+                        >
+                          Deploy to Solana
+                        </Button>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
           </Box>
         );
 

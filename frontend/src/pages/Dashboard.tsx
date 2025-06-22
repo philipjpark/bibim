@@ -54,6 +54,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+import VaultManager from '../components/VaultManager';
 
 interface Holding {
   symbol: string;
@@ -253,6 +254,13 @@ const Dashboard: React.FC = () => {
             </Button>
           </Box>
         </motion.div>
+
+        {/* Vault Management Section */}
+        <Grid container spacing={4} sx={{ mb: 4 }}>
+          <Grid item xs={12}>
+            <VaultManager />
+          </Grid>
+        </Grid>
 
         {/* Portfolio Overview Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
