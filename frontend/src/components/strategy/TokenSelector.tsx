@@ -38,9 +38,10 @@ import solanaTokensService, { SolanaToken } from '../../services/solanaTokensSer
 
 interface TokenSelectorProps {
   onTokenSelect: (token: SolanaToken) => void;
+  selectedToken?: SolanaToken | null;
 }
 
-const TokenSelector: React.FC<TokenSelectorProps> = ({ onTokenSelect }) => {
+const TokenSelector: React.FC<TokenSelectorProps> = ({ onTokenSelect, selectedToken }) => {
   const [tokens, setTokens] = useState<SolanaToken[]>([]);
   const [filteredTokens, setFilteredTokens] = useState<SolanaToken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,16 +238,25 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({ onTokenSelect }) => {
                 <ListItem 
                   sx={{ 
                     cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'action.hover' },
                     borderRadius: 1,
-                    mb: 1
+                    mb: 1,
+                    backgroundColor: selectedToken?.symbol === token.symbol ? '#f3e5f5' : 'transparent',
+                    border: selectedToken?.symbol === token.symbol ? '2px solid' : '1px solid',
+                    borderColor: selectedToken?.symbol === token.symbol ? '#9c27b0' : 'divider',
+                    '&:hover': {
+                      backgroundColor: selectedToken?.symbol === token.symbol 
+                        ? '#f3e5f5' 
+                        : 'action.hover'
+                    }
                   }}
                   onClick={() => onTokenSelect(token)}
                 >
                   <ListItemAvatar>
                     <Avatar 
                       sx={{ 
-                        backgroundColor: getCategoryColor(token.category),
+                        backgroundColor: selectedToken?.symbol === token.symbol 
+                          ? '#9c27b0' 
+                          : getCategoryColor(token.category),
                         fontWeight: 'bold'
                       }}
                     >
@@ -257,23 +267,49 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({ onTokenSelect }) => {
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            fontWeight: 'bold',
+                            color: selectedToken?.symbol === token.symbol ? '#9c27b0' : 'inherit'
+                          }}
+                        >
                           {token.symbol}
                         </Typography>
                         <Chip 
                           label={token.category} 
                           size="small" 
                           sx={{ 
-                            backgroundColor: getCategoryColor(token.category),
+                            backgroundColor: selectedToken?.symbol === token.symbol 
+                              ? '#9c27b0'
+                              : getCategoryColor(token.category),
                             color: 'white',
                             fontSize: '0.7rem'
                           }}
                         />
+                        {selectedToken?.symbol === token.symbol && (
+                          <Chip 
+                            label="Selected" 
+                            size="small" 
+                            sx={{ 
+                              fontSize: '0.7rem',
+                              backgroundColor: '#9c27b0',
+                              color: 'white'
+                            }}
+                          />
+                        )}
                       </Box>
                     }
                     secondary={
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 'medium', 
+                            mb: 0.5,
+                            color: selectedToken?.symbol === token.symbol ? '#9c27b0' : 'inherit'
+                          }}
+                        >
                           {token.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>

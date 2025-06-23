@@ -1,597 +1,1660 @@
 import React, { useState } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Box, 
+import {
+  Box,
+  Container,
   Paper,
-  TextField,
+  Typography,
+  Stepper,
+  Step,
+  StepLabel,
   Button,
-  Alert,
-  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Grid,
   Card,
   CardContent,
   CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  Divider
+  Alert
 } from '@mui/material';
-import {
-  ExpandMore as ExpandMoreIcon,
-  Assessment as AssessmentIcon,
-  Send as SendIcon,
-  Code as CodeIcon,
-  ContentCopy as ContentCopyIcon,
-  Download as DownloadIcon,
-  TrendingUp as TrendingUpIcon,
-  Security as SecurityIcon,
-  Timeline as TimelineIcon,
-  Speed as SpeedIcon
-} from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import geminiService, { StrategyAnalysis } from '../services/geminiService';
+import { useNavigate } from 'react-router-dom';
+import { strategyApi, llmApi } from '../services/api';
+import SentimentAnalysis from '../components/strategy/SentimentAnalysis';
+import TokenSelector from '../components/strategy/TokenSelector';
+import TradingViewWidget from '../components/strategy/TradingViewWidget';
+import BacktestResults from '../components/strategy/BacktestResults';
+import TraditionalStrategySelector from '../components/strategy/TraditionalStrategySelector';
+import StrategyStringBuilder from '../components/strategy/StrategyStringBuilder';
+import PDFUploader from '../components/strategy/PDFUploader';
+import geminiService from '../services/geminiService';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { 
+  PlayArrow as DeployIcon, 
+  ContentCopy as ContentCopyIcon, 
+  Code as CodeIcon
+} from '@mui/icons-material';
+import strategyService, { StrategyConfig } from '../services/strategyService';
+import { SolanaToken } from '../services/solanaTokensService';
+import { TraditionalStrategy } from '../services/traditionalFinanceStrategies';
+
+interface StrategyParameters {
+  coin: string;
+  strategyType: string;
+  breakoutCondition: string;
+  percentageIncrease: number;
+  timeframe: string;
+  volumeCondition: string;
+  riskManagement: {
+    stopLoss: number;
+    takeProfit: number;
+    positionSize: number;
+  };
+  instantSwap: {
+    enabled: boolean;
+    stablecoin: string;
+    minProfitThreshold: number;
+    autoCompound: boolean;
+  };
+}
+
+interface ProvenStrategy {
+  id: string;
+  name: string;
+  description: string;
+  baseParameters: StrategyParameters;
+}
+
+const provenStrategies: ProvenStrategy[] = [
+  {
+    id: 'sol_breakout_v1',
+    name: 'Solana Breakout V1',
+    description: 'A proven breakout strategy optimized for Solana\'s volatility patterns. Uses volume confirmation and dynamic stop-loss.',
+    baseParameters: {
+      coin: 'SOL',
+      strategyType: 'breakout',
+      breakoutCondition: 'price_increase',
+      percentageIncrease: 3,
+      timeframe: '15m',
+      volumeCondition: 'above_average',
+      riskManagement: {
+        stopLoss: 2,
+        takeProfit: 6,
+        positionSize: 100
+      },
+      instantSwap: {
+        enabled: false,
+        stablecoin: 'USDC',
+        minProfitThreshold: 1.5,
+        autoCompound: false
+      }
+    }
+  },
+  {
+    id: 'sol_momentum_v1',
+    name: 'Solana Momentum V1',
+    description: 'Momentum-based strategy that capitalizes on Solana\'s rapid price movements. Uses RSI and MACD for timing.',
+    baseParameters: {
+      coin: 'SOL',
+      strategyType: 'momentum',
+      breakoutCondition: 'price_increase',
+      percentageIncrease: 5,
+      timeframe: '15m',
+      volumeCondition: 'above_average',
+      riskManagement: {
+        stopLoss: 3,
+        takeProfit: 9,
+        positionSize: 80
+      },
+      instantSwap: {
+        enabled: false,
+        stablecoin: 'USDC',
+        minProfitThreshold: 1.5,
+        autoCompound: false
+      }
+    }
+  }
+];
 
 const StrategyBuilder: React.FC = () => {
+  const navigate = useNavigate();
+  const { connected, wallet } = useWallet();
+  const [activeStep, setActiveStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [llmResponse, setLlmResponse] = useState<any>(null);
   
-  // Gemini API States
-  const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState<string | null>(null);
-  const [generatedStrategy, setGeneratedStrategy] = useState<string>('');
-  const [strategyAnalysis, setStrategyAnalysis] = useState<StrategyAnalysis | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [backtestCode, setBacktestCode] = useState('');
-  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
+  // Add PDF research integration state
+  const [pdfSummary, setPdfSummary] = useState<string | null>(null);
+  const [storedPDF, setStoredPDF] = useState<File | null>(null);
+  
+  // Add skip functionality state
+  const [skippedSteps, setSkippedSteps] = useState<Set<number>>(new Set());
+  
+  // Add traditional strategy state
+  const [selectedTraditionalStrategy, setSelectedTraditionalStrategy] = useState<TraditionalStrategy | null>(null);
+  const [sentimentAnalysis, setSentimentAnalysis] = useState<any>(null);
+  const [modelType, setModelType] = useState<'gemini' | 'gpt' | 'claude'>('gemini');
 
-  // Add a state for debug overlay
-  const [showDebugOverlay, setShowDebugOverlay] = useState(true);
-
-  // DEBUG: Log when component loads (after state declarations)
-  console.log('🚀🚀🚀 STRATEGY BUILDER COMPONENT IS LOADING! 🚀🚀🚀');
-  console.log('🔍 If you see this message, the component is working!');
-  console.log('📊 Current state:', { 
-    userInput: userInput.length, 
-    isLoading, 
-    error,
-    apiTestResult,
-    generatedStrategy: generatedStrategy ? 'Generated' : 'None',
-    currentTab: 0 
+  const [parameters, setParameters] = useState<StrategyParameters>({
+    coin: 'SOL',
+    strategyType: 'breakout',
+    breakoutCondition: 'price_increase',
+    percentageIncrease: 3,
+    timeframe: '15m',
+    volumeCondition: 'above_average',
+    riskManagement: {
+      stopLoss: 2,
+      takeProfit: 6,
+      positionSize: 100
+    },
+    instantSwap: {
+      enabled: false,
+      stablecoin: 'USDC',
+      minProfitThreshold: 1.5,
+      autoCompound: false
+    }
   });
+  const [selectedProvenStrategy, setSelectedProvenStrategy] = useState<string>('');
+  const [customModifications, setCustomModifications] = useState('');
+  const [selectedToken, setSelectedToken] = useState<SolanaToken | null>(null);
 
-  // Quick prompt suggestions
-  const quickPrompts = [
-    "Create a momentum-based strategy for SOL/USDC",
-    "Design a DCA strategy with technical indicators", 
-    "Build a mean reversion strategy for volatile altcoins",
-    "Develop a breakout strategy for Bitcoin",
-    "Create a grid trading strategy for sideways markets",
-    "Design a multi-timeframe analysis strategy"
+  const steps = [
+    'Select Token',
+    'Foundational Strategy',
+    'Market Sentiment',
+    'Research Integration',
+    'Define Parameters',
+    'Risk Management',
+    'Swap for Profit',
+    'Strategy String',
+    'Generated Strategy'
   ];
-  
-  const testApiConnection = async () => {
-    console.log('🧪 TEST API BUTTON CLICKED!');
-    setIsLoading(true);
-    setError(null);
-    setApiTestResult(null);
-    
-    try {
-      console.log('🧪 Testing Gemini API connection...');
-      const isWorking = await geminiService.testConnection();
-      if (isWorking) {
-        setApiTestResult('✅ API connection successful! Gemini is working correctly.');
-      } else {
-        setApiTestResult('❌ API connection failed. Check console for details.');
+
+  const handleNext = () => {
+    setActiveStep((prevStep) => prevStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
+  const handleSkipStep = (stepIndex: number) => {
+    setSkippedSteps(prev => {
+      const newSet = new Set(prev);
+      newSet.add(stepIndex);
+      return newSet;
+    });
+    handleNext();
+  };
+
+  const handleUnskipStep = (stepIndex: number) => {
+    setSkippedSteps(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(stepIndex);
+      return newSet;
+    });
+  };
+
+  const isStepSkipped = (stepIndex: number) => skippedSteps.has(stepIndex);
+
+  const handleParameterChange = (field: string, value: any) => {
+    if (field === 'coin') {
+      // Reset selected proven strategy when coin changes
+      setSelectedProvenStrategy('');
+      setParameters(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    } else if (field === 'instantSwap') {
+      // Convert string values back to boolean for instantSwap settings
+      const updatedValue = {
+        ...parameters.instantSwap,
+        ...value,
+        enabled: value.enabled === 'true',
+        autoCompound: value.autoCompound === 'true'
+      };
+      setParameters(prev => ({
+        ...prev,
+        instantSwap: updatedValue
+      }));
+    } else {
+      setParameters(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleRiskManagementChange = (field: string, value: number) => {
+    setParameters((prev) => ({
+      ...prev,
+      riskManagement: {
+        ...prev.riskManagement,
+        [field]: value
       }
-    } catch (err) {
-      console.error('API test error:', err);
-      setApiTestResult(`❌ API test failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false);
+    }));
+  };
+
+  const handleProvenStrategySelect = (strategyId: string) => {
+    const strategy = provenStrategies.find(s => s.id === strategyId);
+    if (strategy) {
+      setParameters(strategy.baseParameters);
+      setSelectedProvenStrategy(strategyId);
     }
   };
 
-  const generateStrategy = async (prompt?: string) => {
-    const inputText = prompt || userInput.trim();
-    if (!inputText) return;
+  const handleTokenSelect = (token: SolanaToken) => {
+    setSelectedToken(token);
+    setParameters(prev => ({
+      ...prev,
+      coin: token.symbol
+    }));
+  };
 
-    setIsLoading(true);
-    setError(null);
-    
+  const handlePDFSummaryGenerated = (summary: string) => {
+    setPdfSummary(summary);
+  };
+
+  const handlePDFStored = (file: File | null) => {
+    setStoredPDF(file);
+  };
+
+  const handlePDFSkip = () => {
+    handleSkipStep(3); // Skip the research integration step
+  };
+
+  const generateStrategyString = () => {
+    // Build concatenated strategy string based on model type
+    let strategyString = '';
+
+    // Header based on model type
+    switch (modelType) {
+      case 'gemini':
+        strategyString += `[CRYPTO TRADING STRATEGY GENERATION]
+
+You are an expert crypto trading strategist with deep knowledge of traditional finance, technical analysis, and Solana ecosystem dynamics. Generate a comprehensive, actionable trading strategy based on the following inputs:
+
+`;
+        break;
+      case 'gpt':
+        strategyString += `[CRYPTO TRADING STRATEGY GENERATION]
+
+You are a professional crypto trading advisor. Create a detailed trading strategy based on the provided information.
+
+## Strategy Context
+`;
+        break;
+      case 'claude':
+        strategyString += `[CRYPTO TRADING STRATEGY GENERATION]
+
+As an expert crypto trading strategist, I need you to analyze the following inputs and generate a comprehensive trading strategy.
+
+## Input Analysis
+`;
+        break;
+    }
+
+    // Token Information (Step 0)
+    if (!isStepSkipped(0) && selectedToken) {
+      strategyString += `
+## 1. ASSET SELECTION
+Token: ${selectedToken.name} (${selectedToken.symbol})
+Address: ${selectedToken.address}
+Category: ${selectedToken.category}
+Description: ${selectedToken.description}
+Market Cap: ${selectedToken.marketCap ? `$${(selectedToken.marketCap / 1e6).toFixed(2)}M` : 'N/A'}
+Price: ${selectedToken.price ? `$${selectedToken.price}` : 'N/A'}
+Volume (24h): ${selectedToken.volume24h ? `$${(selectedToken.volume24h / 1e6).toFixed(2)}M` : 'N/A'}
+`;
+    }
+
+    // Traditional Strategy Foundation (Step 1)
+    if (!isStepSkipped(1) && selectedTraditionalStrategy) {
+      strategyString += `
+## 2. TRADITIONAL FINANCE STRATEGY FOUNDATION
+Strategy: ${selectedTraditionalStrategy.name}
+Category: ${selectedTraditionalStrategy.category}
+Traditional Asset: ${selectedTraditionalStrategy.traditionalAsset}
+Crypto Adaptation: ${selectedTraditionalStrategy.cryptoAdaptation}
+Academic Basis: ${selectedTraditionalStrategy.academicBasis}
+Complexity: ${selectedTraditionalStrategy.complexity}
+Volatility: ${selectedTraditionalStrategy.volatility}
+
+Key Indicators: ${selectedTraditionalStrategy.keyIndicators.join(', ')}
+
+Entry Rules:
+${selectedTraditionalStrategy.entryRules.map(rule => `- ${rule}`).join('\n')}
+
+Exit Rules:
+${selectedTraditionalStrategy.exitRules.map(rule => `- ${rule}`).join('\n')}
+
+Risk Management:
+- Stop Loss: ${selectedTraditionalStrategy.riskManagement.stopLoss}
+- Take Profit: ${selectedTraditionalStrategy.riskManagement.takeProfit}
+- Position Sizing: ${selectedTraditionalStrategy.riskManagement.positionSizing}
+- Max Drawdown: ${selectedTraditionalStrategy.riskManagement.maxDrawdown}
+
+Advantages: ${selectedTraditionalStrategy.advantages.join(', ')}
+Disadvantages: ${selectedTraditionalStrategy.disadvantages.join(', ')}
+
+Academic Papers:
+${selectedTraditionalStrategy.papers.map(paper => `- ${paper}`).join('\n')}
+`;
+    }
+
+    // Sentiment Analysis (Step 2)
+    if (!isStepSkipped(2) && sentimentAnalysis) {
+      strategyString += `
+## 3. MARKET SENTIMENT ANALYSIS
+Overall Sentiment: ${sentimentAnalysis.overallSentiment}
+Sentiment Score: ${(sentimentAnalysis.sentimentScore * 100).toFixed(1)}%
+Confidence: ${(sentimentAnalysis.confidence * 100).toFixed(1)}%
+
+Trading Signal: ${sentimentAnalysis.tradingSignals.signal.toUpperCase()} (${sentimentAnalysis.tradingSignals.strength.toFixed(0)}% strength)
+Reasoning: ${sentimentAnalysis.tradingSignals.reasoning}
+
+Key Insights:
+${sentimentAnalysis.keyInsights.map((insight: string) => `- ${insight}`).join('\n')}
+
+Risk Factors:
+${sentimentAnalysis.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
+`;
+    }
+
+    // Research Integration (Step 3)
+    if (!isStepSkipped(3) && pdfSummary) {
+      strategyString += `
+## 4. RESEARCH INTEGRATION
+PDF Research Summary:
+${pdfSummary}
+
+Research Integration Notes:
+- Research findings have been incorporated into strategy development
+- Market context from research supports strategy direction
+- Risk factors identified in research have been considered
+`;
+    }
+
+    // Parameters (Step 4)
+    if (!isStepSkipped(4)) {
+      strategyString += `
+## 5. STRATEGY PARAMETERS
+Asset: ${parameters.coin}
+Strategy Type: ${parameters.strategyType}
+Breakout Condition: ${parameters.breakoutCondition}
+Percentage Increase: ${parameters.percentageIncrease}%
+Timeframe: ${parameters.timeframe}
+Volume Condition: ${parameters.volumeCondition}
+`;
+    }
+
+    // Risk Management (Step 5)
+    if (!isStepSkipped(5)) {
+      strategyString += `
+## 6. RISK MANAGEMENT
+Stop Loss: ${parameters.riskManagement.stopLoss}%
+Take Profit: ${parameters.riskManagement.takeProfit}%
+Position Size: ${parameters.riskManagement.positionSize}%
+Risk-Reward Ratio: ${(parameters.riskManagement.takeProfit / parameters.riskManagement.stopLoss).toFixed(2)}:1
+`;
+    }
+
+    // Instant Swap Settings (Step 6)
+    if (!isStepSkipped(6)) {
+      strategyString += `
+## 7. INSTANT SWAP CONFIGURATION
+Enabled: ${parameters.instantSwap.enabled ? 'Yes' : 'No'}
+${parameters.instantSwap.enabled ? `
+Stablecoin: ${parameters.instantSwap.stablecoin}
+Minimum Profit Threshold: ${parameters.instantSwap.minProfitThreshold}%
+Auto-Compound: ${parameters.instantSwap.autoCompound ? 'Yes' : 'No'}
+` : ''}
+`;
+    }
+
+    // Custom Modifications
+    if (customModifications) {
+      strategyString += `
+## 8. CUSTOM MODIFICATIONS
+${customModifications}
+`;
+    }
+
+    // Footer based on model type
+    switch (modelType) {
+      case 'gemini':
+        strategyString += `
+## INSTRUCTION
+Please analyze this comprehensive strategy configuration and provide:
+1. A detailed breakdown of the strategy logic and execution plan
+2. Specific entry and exit criteria with technical indicators
+3. Risk management implementation details
+4. Market condition analysis and adaptation strategies
+5. Performance expectations and monitoring metrics
+6. Implementation timeline and execution steps
+7. Stablecoin swap execution strategy and liquidity considerations
+8. Backtesting recommendations and historical performance analysis
+
+Format the response as a professional trading strategy document with clear sections and actionable insights.`;
+        break;
+      case 'gpt':
+        strategyString += `
+## INSTRUCTION
+Based on the provided information, create a comprehensive trading strategy that includes:
+1. Strategy overview and objectives
+2. Entry and exit criteria
+3. Risk management rules
+4. Technical analysis framework
+5. Performance monitoring plan
+6. Implementation guidelines`;
+        break;
+      case 'claude':
+        strategyString += `
+## INSTRUCTION
+Please provide a detailed analysis and strategy recommendation based on the inputs above. Include:
+1. Strategy synthesis and key insights
+2. Implementation framework
+3. Risk assessment and mitigation
+4. Performance expectations
+5. Execution guidelines`;
+        break;
+    }
+
+    return strategyString;
+  };
+
+  const handleGenerateStrategy = async () => {
+    setLoading(true);
+    setError('');
+
     try {
-      console.log('🎯 Generating strategy for:', inputText);
+      const strategyString = generateStrategyString();
+      console.log('🚀 Generating strategy with Gemini service...');
+      console.log('Strategy input:', strategyString);
       
-      // Generate strategy
-      const strategy = await geminiService.generateStrategy(inputText);
-      console.log('✅ Strategy generated:', strategy);
+      // Use Gemini service directly instead of llmApi
+      const response = await geminiService.generateStrategy(strategyString);
+      console.log('✅ Strategy generated successfully:', response);
       
-      // Analyze strategy
-      const analysis = await geminiService.analyzeStrategy(strategy);
-      console.log('📊 Analysis complete:', analysis);
-      
-      setGeneratedStrategy(strategy);
-      setStrategyAnalysis(analysis);
-      setUserInput('');
-      
-    } catch (err) {
+      setLlmResponse({ message: response });
+      handleNext();
+    } catch (err: any) {
       console.error('❌ Strategy generation failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to generate strategy';
-      setError(errorMessage);
-      
-      // Provide fallback strategy
-      const fallbackStrategy = `
-**Fallback Strategy: Simple Moving Average Crossover**
-
-I'm having trouble connecting to the AI service, but here's a proven strategy:
-
-**Strategy Overview:**
-This classic trend-following strategy uses two moving averages to identify entry and exit points.
-
-**Technical Setup:**
-- Short MA: 20-period Simple Moving Average
-- Long MA: 50-period Simple Moving Average  
-- RSI: 14-period for confirmation
-
-**Entry Rules:**
-- Buy: 20-MA crosses above 50-MA AND RSI > 50
-- Sell: 20-MA crosses below 50-MA OR RSI < 30
-
-**Risk Management:**
-- Position Size: 2-3% of portfolio per trade
-- Stop Loss: 5% below entry
-- Take Profit: 10% above entry (2:1 ratio)
-
-**Expected Performance:**
-- Win Rate: 45-55%
-- Monthly Target: 5-15%
-- Max Drawdown: <10%
-
-**Error:** ${errorMessage}
-      `;
-      
-      setGeneratedStrategy(fallbackStrategy);
-      setStrategyAnalysis({
-        strategy: "Simple MA Crossover (Fallback)",
-        riskLevel: "Medium",
-        timeframe: "1h",
-        expectedReturn: "5-15% monthly",
-        keyMetrics: ["Win Rate: 45-55%", "Risk-Reward: 1:2", "Max Drawdown: <10%"],
-        implementation: [
-          "Set up 20-period and 50-period moving averages",
-          "Add RSI indicator for confirmation",
-          "Define clear entry and exit rules",
-          "Implement proper risk management"
-        ],
-        warnings: [
-          "This is a fallback strategy due to API connection issues",
-          "Always test strategies thoroughly before live trading",
-          "Market conditions can significantly affect performance"
-        ]
-      });
+      setError(err.message || 'Failed to generate strategy');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const generateBacktestCode = async () => {
-    if (!generatedStrategy) return;
-    
-    setIsLoading(true);
-    try {
-      const code = await geminiService.generateBacktestCode(generatedStrategy);
-      setBacktestCode(code);
-      setCodeDialogOpen(true);
-    } catch (err) {
-      setError('Failed to generate backtest code. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const renderStepContent = (step: number) => {
+    switch (step) {
+      case 0:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Select Token for Strategy
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Choose the token you want to build a strategy for. This will be the primary asset in your trading strategy.
+            </Typography>
+            <TokenSelector 
+              selectedToken={selectedToken}
+              onTokenSelect={handleTokenSelect}
+            />
+            {selectedToken && (
+              <Alert 
+                severity="success" 
+                sx={{ 
+                  mt: 2,
+                  borderRadius: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif'
+                }}
+              >
+                Selected: {selectedToken.name} ({selectedToken.symbol})
+              </Alert>
+            )}
+          </Box>
+        );
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
+      case 1:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Choose Foundational Strategy
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Select a traditional finance strategy as the foundation for your crypto trading approach.
+            </Typography>
+            <TraditionalStrategySelector
+              selectedStrategy={selectedTraditionalStrategy}
+              onStrategySelect={setSelectedTraditionalStrategy}
+            />
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => handleSkipStep(1)}
+                sx={{ 
+                  mr: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontWeight: 600,
+                  borderRadius: 2
+                }}
+              >
+                Skip Traditional Strategy
+              </Button>
+              {isStepSkipped(1) && (
+                <Button
+                  variant="text"
+                  onClick={() => handleUnskipStep(1)}
+                  sx={{
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontWeight: 600,
+                    color: '#667eea'
+                  }}
+                >
+                  Use Traditional Strategy
+                </Button>
+              )}
+            </Box>
+          </Box>
+        );
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'Low': return 'success';
-      case 'Medium': return 'warning'; 
-      case 'High': return 'error';
-      default: return 'default';
+      case 2:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Market Sentiment Analysis
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Analyze current market sentiment for your selected token to inform strategy decisions.
+            </Typography>
+            <SentimentAnalysis
+              asset={selectedToken?.symbol || 'SOL'}
+            />
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => handleSkipStep(2)}
+                sx={{ 
+                  mr: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontWeight: 600,
+                  borderRadius: 2
+                }}
+              >
+                Skip Sentiment Analysis
+              </Button>
+              {isStepSkipped(2) && (
+                <Button
+                  variant="text"
+                  onClick={() => handleUnskipStep(2)}
+                  sx={{
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontWeight: 600,
+                    color: '#667eea'
+                  }}
+                >
+                  Include Sentiment Analysis
+                </Button>
+              )}
+            </Box>
+          </Box>
+        );
+
+      case 3:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Research Integration
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Upload research documents to enhance your strategy with additional market insights.
+            </Typography>
+            <PDFUploader
+              onPDFStored={handlePDFStored}
+              storedPDF={storedPDF}
+              onSkip={handlePDFSkip}
+            />
+            {pdfSummary && (
+              <Alert 
+                severity="success" 
+                sx={{ 
+                  mt: 2,
+                  borderRadius: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif'
+                }}
+              >
+                Research summary generated successfully!
+              </Alert>
+            )}
+          </Box>
+        );
+
+      case 4:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Define Strategy Parameters
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Configure the core parameters for your trading strategy.
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Strategy Type</InputLabel>
+                  <Select
+                    value={parameters.strategyType}
+                    label="Strategy Type"
+                    onChange={(e) => handleParameterChange('strategyType', e.target.value)}
+                    sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                  >
+                    <MenuItem value="breakout">Breakout Strategy</MenuItem>
+                    <MenuItem value="trend">Trend Following</MenuItem>
+                    <MenuItem value="mean_reversion">Mean Reversion</MenuItem>
+                    <MenuItem value="momentum">Momentum</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Breakout Condition</InputLabel>
+                  <Select
+                    value={parameters.breakoutCondition}
+                    label="Breakout Condition"
+                    onChange={(e) => handleParameterChange('breakoutCondition', e.target.value)}
+                    sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                  >
+                    <MenuItem value="price_increase">Price Increase</MenuItem>
+                    <MenuItem value="volume_spike">Volume Spike</MenuItem>
+                    <MenuItem value="pattern_breakout">Pattern Breakout</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Percentage Increase"
+                  type="number"
+                  value={parameters.percentageIncrease}
+                  onChange={(e) => handleParameterChange('percentageIncrease', Number(e.target.value))}
+                  InputProps={{
+                    endAdornment: <Typography sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>%</Typography>
+                  }}
+                  sx={{ 
+                    '& .MuiInputLabel-root': { fontFamily: '"Noto Sans KR", sans-serif' },
+                    '& .MuiInputBase-input': { fontFamily: '"Noto Sans KR", sans-serif' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Timeframe</InputLabel>
+                  <Select
+                    value={parameters.timeframe}
+                    label="Timeframe"
+                    onChange={(e) => handleParameterChange('timeframe', e.target.value)}
+                    sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                  >
+                    <MenuItem value="5m">5 Minutes</MenuItem>
+                    <MenuItem value="15m">15 Minutes</MenuItem>
+                    <MenuItem value="1h">1 Hour</MenuItem>
+                    <MenuItem value="4h">4 Hours</MenuItem>
+                    <MenuItem value="1d">1 Day</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Volume Condition</InputLabel>
+                  <Select
+                    value={parameters.volumeCondition}
+                    label="Volume Condition"
+                    onChange={(e) => handleParameterChange('volumeCondition', e.target.value)}
+                    sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                  >
+                    <MenuItem value="above_average">Above Average</MenuItem>
+                    <MenuItem value="double_average">Double Average</MenuItem>
+                    <MenuItem value="triple_average">Triple Average</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Box>
+        );
+
+      case 5:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Risk Management Configuration
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Set up your risk management parameters to protect your capital.
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Stop Loss"
+                  type="number"
+                  value={parameters.riskManagement.stopLoss}
+                  onChange={(e) => handleRiskManagementChange('stopLoss', Number(e.target.value))}
+                  InputProps={{
+                    endAdornment: <Typography sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>%</Typography>
+                  }}
+                  sx={{ 
+                    '& .MuiInputLabel-root': { fontFamily: '"Noto Sans KR", sans-serif' },
+                    '& .MuiInputBase-input': { fontFamily: '"Noto Sans KR", sans-serif' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Take Profit"
+                  type="number"
+                  value={parameters.riskManagement.takeProfit}
+                  onChange={(e) => handleRiskManagementChange('takeProfit', Number(e.target.value))}
+                  InputProps={{
+                    endAdornment: <Typography sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>%</Typography>
+                  }}
+                  sx={{ 
+                    '& .MuiInputLabel-root': { fontFamily: '"Noto Sans KR", sans-serif' },
+                    '& .MuiInputBase-input': { fontFamily: '"Noto Sans KR", sans-serif' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Position Size"
+                  type="number"
+                  value={parameters.riskManagement.positionSize}
+                  onChange={(e) => handleRiskManagementChange('positionSize', Number(e.target.value))}
+                  InputProps={{
+                    endAdornment: <Typography sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>%</Typography>
+                  }}
+                  sx={{ 
+                    '& .MuiInputLabel-root': { fontFamily: '"Noto Sans KR", sans-serif' },
+                    '& .MuiInputBase-input': { fontFamily: '"Noto Sans KR", sans-serif' }
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+
+      case 6:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Instant Stablecoin Swap Settings
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Configure automatic profit-taking through instant stablecoin swaps for immediate liquidity.
+            </Typography>
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%)',
+                border: '1px solid rgba(102, 126, 234, 0.1)'
+              }}
+            >
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Enable Instant Swap</InputLabel>
+                    <Select<string>
+                      value={parameters.instantSwap.enabled ? 'true' : 'false'}
+                      label="Enable Instant Swap"
+                      onChange={(e) => handleParameterChange('instantSwap', {
+                        ...parameters.instantSwap,
+                        enabled: e.target.value
+                      })}
+                      sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                    >
+                      <MenuItem value="true">Enabled</MenuItem>
+                      <MenuItem value="false">Disabled</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {parameters.instantSwap.enabled && (
+                  <>
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Stablecoin</InputLabel>
+                        <Select
+                          value={parameters.instantSwap.stablecoin}
+                          label="Stablecoin"
+                          onChange={(e) => handleParameterChange('instantSwap', {
+                            ...parameters.instantSwap,
+                            stablecoin: e.target.value
+                          })}
+                          sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                        >
+                          <MenuItem value="USDC">USDC</MenuItem>
+                          <MenuItem value="USDT">USDT</MenuItem>
+                          <MenuItem value="DAI">DAI</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Minimum Profit Threshold"
+                        type="number"
+                        value={parameters.instantSwap.minProfitThreshold}
+                        onChange={(e) => handleParameterChange('instantSwap', {
+                          ...parameters.instantSwap,
+                          minProfitThreshold: Number(e.target.value)
+                        })}
+                        InputProps={{
+                          endAdornment: <Typography sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>%</Typography>
+                        }}
+                        helperText="Minimum profit percentage to trigger swap"
+                        sx={{ 
+                          '& .MuiInputLabel-root': { fontFamily: '"Noto Sans KR", sans-serif' },
+                          '& .MuiInputBase-input': { fontFamily: '"Noto Sans KR", sans-serif' },
+                          '& .MuiFormHelperText-root': { fontFamily: '"Noto Sans KR", sans-serif' }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}>Auto-Compound Profits</InputLabel>
+                        <Select<string>
+                          value={parameters.instantSwap.autoCompound ? 'true' : 'false'}
+                          label="Auto-Compound Profits"
+                          onChange={(e) => handleParameterChange('instantSwap', {
+                            ...parameters.instantSwap,
+                            autoCompound: e.target.value
+                          })}
+                          sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                        >
+                          <MenuItem value="true">Enabled</MenuItem>
+                          <MenuItem value="false">Disabled</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          fontFamily: '"Noto Sans KR", sans-serif'
+                        }}
+                      >
+                        When enabled, stablecoin profits will be automatically reinvested into the strategy
+                      </Typography>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            </Paper>
+          </Box>
+        );
+
+      case 7:
+        return (
+          <Box>
+            <Typography 
+              variant="h5" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontWeight: 700,
+                color: '#2d3748',
+                mb: 2
+              }}
+            >
+              Strategy String Builder
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3,
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              Review and customize the strategy string that will be sent to the AI for strategy generation.
+            </Typography>
+            <StrategyStringBuilder
+              selectedToken={selectedToken}
+              selectedStrategy={selectedTraditionalStrategy}
+              sentimentAnalysis={sentimentAnalysis}
+              pdfSummary={pdfSummary}
+              parameters={parameters}
+              riskManagement={parameters.riskManagement}
+              instantSwap={parameters.instantSwap}
+              customModifications={customModifications}
+              modelType={modelType}
+              skippedSteps={skippedSteps}
+            />
+            <Box sx={{ mt: 3 }}>
+              <Button
+                variant="contained"
+                onClick={handleGenerateStrategy}
+                disabled={loading}
+                sx={{ 
+                  mr: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
+                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)'
+                  }
+                }}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    Generating Strategy...
+                  </>
+                ) : (
+                  'Generate Strategy'
+                )}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/backtest')}
+                disabled={!llmResponse}
+                sx={{
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    borderColor: '#5a6fd8',
+                    background: 'rgba(102, 126, 234, 0.05)'
+                  }
+                }}
+              >
+                Proceed to Backtest
+              </Button>
+            </Box>
+          </Box>
+        );
+
+      case 8:
+        return (
+          <Box>
+            {/* Success Header with Animation */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  mb: 4,
+                  p: 3,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: 3,
+                  color: 'white',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -20,
+                    right: -20,
+                    width: 100,
+                    height: 100,
+                    background: 'rgba(255,255,255,0.1)',
+                    borderRadius: '50%',
+                  }}
+                />
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    mb: 1,
+                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    fontFamily: '"Noto Sans KR", sans-serif'
+                  }}
+                >
+                  🎉 Strategy Generated Successfully!
+                </Typography>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    opacity: 0.9,
+                    fontFamily: '"Noto Sans KR", sans-serif'
+                  }}
+                >
+                  Your AI-powered {parameters.coin} trading strategy is ready
+                </Typography>
+              </Box>
+            </motion.div>
+
+            {/* Strategy Content with Beautiful Styling */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <Paper
+                elevation={6}
+                sx={{
+                  mb: 4,
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+                  border: '1px solid rgba(102, 126, 234, 0.1)',
+                }}
+              >
+                {/* Strategy Header */}
+                <Box
+                  sx={{
+                    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                    p: 3,
+                    color: 'white'
+                  }}
+                >
+                  <Grid container alignItems="center" spacing={2}>
+                    <Grid item>
+                      <Box
+                        sx={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '24px'
+                        }}
+                      >
+                        🧠
+                      </Box>
+                    </Grid>
+                    <Grid item xs>
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          fontWeight: 'bold', 
+                          mb: 0.5,
+                          fontFamily: '"Noto Sans KR", sans-serif'
+                        }}
+                      >
+                        AI-Generated Trading Strategy
+                      </Typography>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          opacity: 0.9,
+                          fontFamily: '"Noto Sans KR", sans-serif'
+                        }}
+                      >
+                        {parameters.coin} • {parameters.strategyType} • {parameters.timeframe}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Strategy Content */}
+                <Box sx={{ p: 4 }}>
+                  <Box
+                    sx={{
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      borderRadius: 3,
+                      p: 3,
+                      border: '2px solid #e3e8f0',
+                      '& pre': {
+                        margin: 0,
+                        padding: 0,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        fontFamily: '"SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.6,
+                        color: '#2d3748',
+                        background: 'transparent'
+                      }
+                    }}
+                  >
+                    <pre>{llmResponse?.message}</pre>
+                  </Box>
+                </Box>
+              </Paper>
+            </motion.div>
+
+            {/* Action Buttons with Enhanced Styling */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => navigate('/backtest')}
+                  disabled={!llmResponse}
+                  sx={{
+                    background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 3,
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    fontSize: '1.1rem',
+                    boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4)',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
+                      boxShadow: '0 6px 25px rgba(102, 126, 234, 0.6)',
+                    }
+                  }}
+                >
+                  🚀 Start Backtesting
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={() => {
+                    navigator.clipboard.writeText(llmResponse?.message || '');
+                    // You could add a toast notification here
+                  }}
+                  sx={{
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 3,
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    fontSize: '1.1rem',
+                    borderColor: '#667eea',
+                    color: '#667eea',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    '&:hover': {
+                      borderColor: '#5a6fd8',
+                      background: 'rgba(102, 126, 234, 0.05)',
+                    }
+                  }}
+                >
+                  📋 Copy Strategy
+                </Button>
+
+                <Button
+                  variant="text"
+                  size="large"
+                  onClick={() => setActiveStep(0)}
+                  sx={{
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 3,
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    fontSize: '1.1rem',
+                    color: '#6b7280',
+                    border: '2px solid #d1d5db',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    '&:hover': {
+                      background: 'rgba(107, 114, 128, 0.1)',
+                      borderColor: '#9ca3af',
+                    }
+                  }}
+                >
+                  🔄 Create New Strategy
+                </Button>
+              </Box>
+            </motion.div>
+
+            {/* Additional Info Cards */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              <Grid container spacing={3} sx={{ mt: 4 }}>
+                <Grid item xs={12} md={4}>
+                  <Card
+                    sx={{
+                      p: 3,
+                      textAlign: 'center',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      borderRadius: 3
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 1, 
+                        fontWeight: 'bold',
+                        fontFamily: '"Noto Sans KR", sans-serif'
+                      }}
+                    >
+                      Risk Level
+                    </Typography>
+                    <Typography variant="h4" sx={{ mb: 1 }}>
+                      📊
+                    </Typography>
+                    <Typography 
+                      variant="body1"
+                      sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                    >
+                      {parameters.riskManagement.stopLoss}% Stop Loss
+                    </Typography>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <Card
+                    sx={{
+                      p: 3,
+                      textAlign: 'center',
+                      background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                      color: 'white',
+                      borderRadius: 3
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 1, 
+                        fontWeight: 'bold',
+                        fontFamily: '"Noto Sans KR", sans-serif'
+                      }}
+                    >
+                      Target Profit
+                    </Typography>
+                    <Typography variant="h4" sx={{ mb: 1 }}>
+                      💰
+                    </Typography>
+                    <Typography 
+                      variant="body1"
+                      sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                    >
+                      {parameters.riskManagement.takeProfit}% Take Profit
+                    </Typography>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <Card
+                    sx={{
+                      p: 3,
+                      textAlign: 'center',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      borderRadius: 3
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 1, 
+                        fontWeight: 'bold',
+                        fontFamily: '"Noto Sans KR", sans-serif'
+                      }}
+                    >
+                      Timeframe
+                    </Typography>
+                    <Typography variant="h4" sx={{ mb: 1 }}>
+                      ⏰
+                    </Typography>
+                    <Typography 
+                      variant="body1"
+                      sx={{ fontFamily: '"Noto Sans KR", sans-serif' }}
+                    >
+                      {parameters.timeframe}
+                    </Typography>
+                  </Card>
+                </Grid>
+              </Grid>
+            </motion.div>
+          </Box>
+        );
+
+      default:
+        return null;
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: (theme) => `linear-gradient(135deg, 
-          ${theme.palette.background.default} 0%, 
-          ${theme.palette.primary.light} 100%)`,
-        py: 4,
-        position: 'relative'
-      }}
-    >
-      {/* UNMISSABLE DEBUG OVERLAY */}
-      {showDebugOverlay && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 0, 0, 0.9)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: 3,
-            color: 'white',
-            textAlign: 'center'
-          }}
-          onClick={() => setShowDebugOverlay(false)}
-        >
-          <Typography variant="h2" sx={{ fontWeight: 'bold' }}>
-            🚨 STRATEGY BUILDER LOADED! 🚨
-          </Typography>
-          <Typography variant="h4">
-            Click anywhere to continue
-          </Typography>
-          <Typography variant="h6">
-            If you see this, the component is working perfectly!
-          </Typography>
-        </Box>
-      )}
-      
-      {/* SUPER OBVIOUS DEBUG BANNER - Cannot miss this! */}
-      <Box sx={{ 
-        bgcolor: 'red', 
-        color: 'white', 
-        p: 3, 
-        textAlign: 'center',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        position: 'sticky',
-        top: 0,
-        zIndex: 9999,
-        boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
-      }}>
-        🚨🚨🚨 NEW STRATEGY BUILDER IS WORKING! 🚨🚨🚨
-        <br />
-        If you can see this red banner, the component loaded successfully!
-      </Box>
-      
-      <Container maxWidth="xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Typography 
-            variant="h3" 
-            gutterBottom 
-            sx={{ 
+    <Container maxWidth="lg">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Box sx={{ mt: 4, mb: 4 }}>
+          <Typography
+            variant="h3"
+            gutterBottom
+            sx={{
               fontFamily: '"Noto Sans KR", sans-serif',
-              fontWeight: 700,
-              color: 'primary.main',
-              mb: 2
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textAlign: 'center',
+              mb: 4
             }}
           >
-            Strategy Builder 🥘 - AI Powered
+            Strategy Builder
           </Typography>
-        </motion.div>
 
-        <Grid container spacing={4}>
-          {/* AI Strategy Generator Section */}
-          <Grid item xs={12} lg={8}>
-            <Paper elevation={3} sx={{ p: 3, borderRadius: '20px' }}>
-              {/* Header with Test Button */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  🤖 AI Strategy Generator
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={testApiConnection}
-                  disabled={isLoading}
-                  startIcon={<AssessmentIcon />}
-                  sx={{ fontWeight: 'bold' }}
-                >
-                  🧪 Test Gemini API
-                </Button>
-              </Box>
-
-              {/* API Test Result */}
-              {apiTestResult && (
-                <Alert 
-                  severity={apiTestResult.includes('✅') ? 'success' : 'error'} 
-                  sx={{ mb: 3 }}
-                  onClose={() => setApiTestResult(null)}
-                >
-                  {apiTestResult}
-                </Alert>
-              )}
-
-              {/* Error Display */}
-              {error && (
-                <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-                  {error}
-                </Alert>
-              )}
-
-              {/* Quick Prompts */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-                  Quick Strategy Ideas:
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {quickPrompts.map((prompt, index) => (
-                    <Chip
-                      key={index}
-                      label={prompt}
-                      clickable
-                      onClick={() => generateStrategy(prompt)}
-                      sx={{ mb: 1 }}
-                      color="primary"
-                      variant="outlined"
-                    />
-                  ))}
-                </Box>
-              </Box>
-
-              {/* Strategy Input */}
-              <Box sx={{ mb: 3 }}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  variant="outlined"
-                  placeholder="Describe your trading strategy idea... (e.g., 'Create a momentum strategy for Bitcoin using RSI and MACD')"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  sx={{ mb: 2 }}
-                />
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={() => generateStrategy()}
-                  disabled={isLoading || !userInput.trim()}
-                  startIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
-                  sx={{ minWidth: '200px' }}
-                >
-                  {isLoading ? 'Generating...' : 'Generate Strategy'}
-                </Button>
-              </Box>
-
-              {/* Generated Strategy Display */}
-              {generatedStrategy && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          Generated Strategy
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button
-                            size="small"
-                            startIcon={<ContentCopyIcon />}
-                            onClick={() => copyToClipboard(generatedStrategy)}
-                          >
-                            Copy
-                          </Button>
-                          <Button
-                            size="small"
-                            startIcon={<CodeIcon />}
-                            onClick={generateBacktestCode}
-                            disabled={isLoading}
-                          >
-                            Generate Code
-                          </Button>
-                        </Box>
-                      </Box>
+          <Paper
+            elevation={8}
+            sx={{
+              p: 4,
+              borderRadius: 4,
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(102, 126, 234, 0.1)',
+              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.1)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Stepper Container */}
+            <Box sx={{ mb: 4, p: 3, background: 'rgba(102, 126, 234, 0.05)', borderRadius: 3 }}>
+              <Stepper 
+                activeStep={activeStep} 
+                sx={{ 
+                  '& .MuiStepLabel-root': {
+                    '& .MuiStepLabel-label': {
+                      fontFamily: '"Noto Sans KR", sans-serif',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      color: '#2d3748'
+                    },
+                    '& .MuiStepLabel-label.Mui-active': {
+                      color: '#667eea',
+                      fontWeight: 700
+                    },
+                    '& .MuiStepLabel-label.Mui-completed': {
+                      color: '#38a169',
+                      fontWeight: 600
+                    }
+                  },
+                  '& .MuiStepIcon-root': {
+                    fontSize: '1.5rem',
+                    '&.Mui-active': {
+                      color: '#667eea'
+                    },
+                    '&.Mui-completed': {
+                      color: '#38a169'
+                    }
+                  }
+                }}
+              >
+                {steps.map((label, index) => (
+                  <Step key={label}>
+                    <StepLabel>
                       <Typography 
-                        variant="body1" 
+                        variant="body2" 
                         sx={{ 
-                          whiteSpace: 'pre-wrap',
-                          lineHeight: 1.6,
-                          fontFamily: 'monospace',
-                          fontSize: '0.9rem'
+                          fontFamily: '"Noto Sans KR", sans-serif',
+                          fontWeight: isStepSkipped(index) ? 400 : 600,
+                          color: isStepSkipped(index) ? '#a0aec0' : 'inherit'
                         }}
                       >
-                        {generatedStrategy}
+                        {label}
+                        {isStepSkipped(index) && (
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              display: 'block',
+                              color: '#a0aec0',
+                              fontStyle: 'italic'
+                            }}
+                          >
+                            (Skipped)
+                          </Typography>
+                        )}
                       </Typography>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </Paper>
-          </Grid>
-
-          {/* Strategy Analysis Section */}
-          <Grid item xs={12} lg={4}>
-            {strategyAnalysis ? (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Paper elevation={3} sx={{ p: 3, borderRadius: '20px' }}>
-                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
-                    📊 Strategy Analysis
-                  </Typography>
-
-                  {/* Strategy Overview */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-                      Overview
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      <Chip 
-                        label={strategyAnalysis.strategy} 
-                        color="primary" 
-                        icon={<TrendingUpIcon />}
-                        size="small"
-                      />
-                      <Chip 
-                        label={`Risk: ${strategyAnalysis.riskLevel}`} 
-                        color={getRiskColor(strategyAnalysis.riskLevel) as any}
-                        icon={<SecurityIcon />}
-                        size="small"
-                      />
-                      <Chip 
-                        label={strategyAnalysis.timeframe} 
-                        color="secondary"
-                        icon={<TimelineIcon />}
-                        size="small"
-                      />
-                      <Chip 
-                        label={strategyAnalysis.expectedReturn} 
-                        color="success"
-                        icon={<SpeedIcon />}
-                        size="small"
-                      />
-                    </Box>
-                  </Box>
-
-                  {/* Key Metrics */}
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                        Key Metrics
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <List dense>
-                        {strategyAnalysis.keyMetrics.map((metric, index) => (
-                          <ListItem key={index}>
-                            <ListItemText primary={metric} />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </AccordionDetails>
-                  </Accordion>
-
-                  {/* Implementation */}
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                        Implementation Steps
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <List dense>
-                        {strategyAnalysis.implementation.map((step, index) => (
-                          <ListItem key={index}>
-                            <ListItemText primary={`${index + 1}. ${step}`} />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </AccordionDetails>
-                  </Accordion>
-
-                  {/* Warnings */}
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                        Important Warnings
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Alert severity="warning">
-                        <List dense>
-                          {strategyAnalysis.warnings.map((warning, index) => (
-                            <ListItem key={index}>
-                              <ListItemText primary={warning} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Alert>
-                    </AccordionDetails>
-                  </Accordion>
-                </Paper>
-              </motion.div>
-            ) : (
-              <Paper elevation={3} sx={{ p: 3, borderRadius: '20px', textAlign: 'center' }}>
-                <Typography variant="h6" color="text.secondary">
-                  🎯 Generate a strategy to see analysis
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  Use the AI generator on the left to create and analyze trading strategies
-                </Typography>
-              </Paper>
-            )}
-          </Grid>
-        </Grid>
-
-        {/* Backtest Code Dialog */}
-        <Dialog 
-          open={codeDialogOpen} 
-          onClose={() => setCodeDialogOpen(false)}
-          maxWidth="lg"
-          fullWidth
-        >
-          <DialogTitle>
-            Generated Backtest Code
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ position: 'relative' }}>
-              <pre style={{ 
-                background: '#f5f5f5', 
-                padding: '16px', 
-                borderRadius: '8px',
-                overflow: 'auto',
-                maxHeight: '400px',
-                fontSize: '14px'
-              }}>
-                {backtestCode}
-              </pre>
-              <Button
-                sx={{ position: 'absolute', top: 8, right: 8 }}
-                startIcon={<ContentCopyIcon />}
-                onClick={() => copyToClipboard(backtestCode)}
-                size="small"
-              >
-                Copy
-              </Button>
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
             </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setCodeDialogOpen(false)}>
-              Close
-            </Button>
-            <Button 
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              onClick={() => {
-                const blob = new Blob([backtestCode], { type: 'text/python' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'strategy_backtest.py';
-                a.click();
-              }}
-            >
-              Download
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Box>
+
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 3,
+                  borderRadius: 2,
+                  fontFamily: '"Noto Sans KR", sans-serif'
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            {/* Step Content */}
+            <Box sx={{ 
+              minHeight: '400px',
+              p: 3,
+              background: 'rgba(255, 255, 255, 0.7)',
+              borderRadius: 3,
+              border: '1px solid rgba(102, 126, 234, 0.1)'
+            }}>
+              {renderStepContent(activeStep)}
+            </Box>
+
+            {/* Navigation Buttons */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              mt: 4,
+              pt: 3,
+              borderTop: '1px solid rgba(102, 126, 234, 0.1)'
+            }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                variant="outlined"
+                sx={{
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.5,
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    borderColor: '#5a6fd8',
+                    background: 'rgba(102, 126, 234, 0.05)'
+                  }
+                }}
+              >
+                ← Back
+              </Button>
+              {activeStep < steps.length - 1 && (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={loading}
+                  sx={{
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
+                      boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)'
+                    }
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      Generating...
+                    </>
+                  ) : (
+                    'Next →'
+                  )}
+                </Button>
+              )}
+            </Box>
+          </Paper>
+        </Box>
+      </motion.div>
+    </Container>
   );
 };
 

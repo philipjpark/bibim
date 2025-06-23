@@ -113,7 +113,7 @@ const LLMStrategyChef: React.FC = () => {
     "Create a momentum-based strategy for SOL/USDC",
     "Design a DCA strategy with technical indicators",
     "Build a mean reversion strategy for volatile altcoins",
-    "Develop a breakout strategy for Bitcoin",
+    "Develop a breakout strategy for SOL",
     "Create a grid trading strategy for sideways markets",
     "Design a multi-timeframe analysis strategy"
   ];

@@ -997,8 +997,8 @@ Please provide a detailed strategy that leverages the academic insights while re
                   }}
                 >
                   <MenuItem value="SOL-breakout">SOL - Breakout Strategy</MenuItem>
-                  <MenuItem value="BTC-trend">BTC - Trend Following</MenuItem>
-                  <MenuItem value="ETH-mean_reversion">ETH - Mean Reversion</MenuItem>
+                  <MenuItem value="WIF-momentum">WIF - Momentum Strategy</MenuItem>
+                  <MenuItem value="PYTH-mean_reversion">PYTH - Mean Reversion</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

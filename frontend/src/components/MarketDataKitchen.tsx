@@ -30,23 +30,23 @@ const MarketDataKitchen: React.FC = () => {
   const marketData: MarketData[] = [
     {
       symbol: 'SOL/USD',
-      price: 98.45,
-      change: 2.34,
-      volume: 1234567,
+      price: 132.94,
+      change: -1.23,
+      volume: 2456789,
       lastUpdate: '2 min ago'
     },
     {
-      symbol: 'BTC/USD',
-      price: 43210.50,
-      change: -1.23,
-      volume: 9876543,
+      symbol: 'WIF/USD',
+      price: 0.69,
+      change: 8.45,
+      volume: 1234567,
       lastUpdate: '1 min ago'
     },
     {
-      symbol: 'ETH/USD',
-      price: 2345.67,
-      change: 0.45,
-      volume: 4567890,
+      symbol: 'PYTH/USD',
+      price: 0.08,
+      change: 2.87,
+      volume: 987654,
       lastUpdate: '3 min ago'
     }
   ];

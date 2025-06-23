@@ -16,6 +16,22 @@ const SolanaLogo: React.FC<{ size: number }> = ({ size }) => (
   </svg>
 );
 
+const WifLogo: React.FC<{ size: number }> = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="12" fill="#FF6B35"/>
+    <path d="M8 8h2v8H8V8zm6 0h2v8h-2V8z" fill="white"/>
+    <path d="M10 10h4v4h-4v-4z" fill="white"/>
+  </svg>
+);
+
+const PythLogo: React.FC<{ size: number }> = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="12" fill="#6366F1"/>
+    <path d="M7 7h10v10H7V7zm2 2v6h6V9H9z" fill="white"/>
+    <circle cx="12" cy="12" r="2" fill="#6366F1"/>
+  </svg>
+);
+
 const EthereumLogo: React.FC<{ size: number }> = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" fill="#627EEA"/>
@@ -138,6 +154,21 @@ const Token: React.FC<TokenProps> = ({ Logo, name, delay, position }) => {
 };
 
 const CryptoShakers: React.FC = () => {
+  const tokens = [
+    {
+      Logo: SolanaLogo,
+      name: "SOL"
+    },
+    {
+      Logo: WifLogo,
+      name: "WIF"
+    },
+    {
+      Logo: PythLogo,
+      name: "PYTH"
+    }
+  ];
+
   return (
     <Box
       sx={{
@@ -244,24 +275,15 @@ const CryptoShakers: React.FC = () => {
         />
         
         {/* Crypto containers positioned neatly on the cutting board */}
-        <Token 
-          Logo={BitcoinLogo} 
-          name="BTC" 
-          delay={0} 
-          position={{ x: 55, y: 50 }}
-        />
-        <Token 
-          Logo={EthereumLogo} 
-          name="ETH" 
-          delay={0.2} 
-          position={{ x: 115, y: 50 }}
-        />
-        <Token 
-          Logo={SolanaLogo} 
-          name="SOL" 
-          delay={0.4} 
-          position={{ x: 175, y: 50 }}
-        />
+        {tokens.map((token, index) => (
+          <Token 
+            key={index}
+            Logo={token.Logo} 
+            name={token.name} 
+            delay={0.2 * index} 
+            position={{ x: 55 + 60 * index, y: 50 }}
+          />
+        ))}
       </Box>
     </Box>
   );

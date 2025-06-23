@@ -77,7 +77,7 @@ interface PortfolioMetrics {
 // Mock price history data generator
 const generatePriceHistory = (symbol: string) => {
   const data = [];
-  let basePrice = symbol === 'BTC' ? 43000 : symbol === 'ETH' ? 2400 : 102;
+  let basePrice = symbol === 'SOL' ? 132.94 : symbol === 'PYTH' ? 0.08 : 0.69;
   
   for (let i = 30; i >= 0; i--) {
     const date = new Date();
@@ -95,18 +95,18 @@ const generatePriceHistory = (symbol: string) => {
 
 const Dashboard: React.FC = () => {
   const [holdings, setHoldings] = useState<Holding[]>([
-    { symbol: 'SOL', name: 'Solana', amount: 125.5, value: 12840.50, change24h: 5.23, allocation: 35.2 },
-    { symbol: 'BTC', name: 'Bitcoin', amount: 0.75, value: 32250.00, change24h: -2.15, allocation: 40.8 },
-    { symbol: 'ETH', name: 'Ethereum', amount: 8.2, value: 19680.00, change24h: 3.47, allocation: 24.0 }
+    { symbol: 'WIF', name: 'dogwifhat', amount: 2500, value: 1725.00, change24h: 8.45, allocation: 15.0 },
+    { symbol: 'SOL', name: 'Solana', amount: 15.5, value: 2060.57, change24h: -1.23, allocation: 18.0 },
+    { symbol: 'PYTH', name: 'Pyth Network', amount: 1250, value: 100.00, change24h: 2.87, allocation: 0.9 }
   ]);
 
   const [portfolioMetrics, setPortfolioMetrics] = useState<PortfolioMetrics>({
-    totalValue: 64770.50,
-    totalChange24h: 1247.82,
-    totalChangePercent: 1.96,
-    totalPnL: 8450.30,
-    bestPerformer: 'SOL',
-    worstPerformer: 'BTC'
+    totalValue: 3885.57,
+    totalChange24h: 95.82,
+    totalChangePercent: 2.47,
+    totalPnL: 524.30,
+    bestPerformer: 'WIF',
+    worstPerformer: 'SOL'
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -385,7 +385,7 @@ const Dashboard: React.FC = () => {
                             width: 40,
                             height: 40,
                             borderRadius: '50%',
-                            background: `linear-gradient(135deg, ${holding.symbol === 'BTC' ? '#f7931a' : holding.symbol === 'ETH' ? '#627eea' : '#14f195'}, ${holding.symbol === 'BTC' ? '#ff9500' : holding.symbol === 'ETH' ? '#764ba2' : '#00d4aa'})`,
+                            background: `linear-gradient(135deg, ${holding.symbol === 'SOL' ? '#f7931a' : holding.symbol === 'PYTH' ? '#627eea' : '#14f195'}, ${holding.symbol === 'SOL' ? '#ff9500' : holding.symbol === 'PYTH' ? '#764ba2' : '#00d4aa'})`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
