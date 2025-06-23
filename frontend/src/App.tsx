@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { WalletContextProvider } from './contexts/WalletContext';
 import theme from './styles/theme';
 
@@ -26,10 +26,10 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/strategy-builder" element={<StrategyBuilder />} />
               <Route path="/strategy-creator" element={<StrategyCreator />} />
+              <Route path="/strategy-marketplace" element={<StrategyMarketplace />} />
               <Route path="/token-incentivization" element={<TokenIncentivization />} />
               <Route path="/backtest" element={<Backtest />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/strategy-marketplace" element={<StrategyMarketplace />} />
             </Routes>
           </div>
         </Router>

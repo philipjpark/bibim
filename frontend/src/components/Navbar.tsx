@@ -32,7 +32,8 @@ import {
   LocalPizza as PizzaIcon,
   Fastfood as FastfoodIcon,
   SetMeal as SetMealIcon,
-  RestaurantMenu as MenuIcon
+  RestaurantMenu as MenuIcon,
+  AutoAwesome as AutoIcon
 } from '@mui/icons-material';
 import WalletConnect from './WalletConnect';
 

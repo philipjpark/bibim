@@ -17,7 +17,10 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Alert
+  Alert,
+  Chip,
+  ToggleButtonGroup,
+  ToggleButton
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -34,11 +37,15 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { 
   PlayArrow as DeployIcon, 
   ContentCopy as ContentCopyIcon, 
-  Code as CodeIcon
+  Code as CodeIcon,
+  CurrencyBitcoin as BnbIcon,
+  AccountBalance as SolanaIcon
 } from '@mui/icons-material';
 import strategyService, { StrategyConfig } from '../../services/strategyService';
 import { SolanaToken } from '../../services/solanaTokensService';
 import { TraditionalStrategy } from '../../services/traditionalFinanceStrategies';
+import bnbService from '../../services/bnbService';
+import paypalService from '../../services/paypalService';
 
 interface StrategyParameters {
   coin: string;
