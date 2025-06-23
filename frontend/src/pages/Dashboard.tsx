@@ -27,7 +27,12 @@ import {
   Select,
   MenuItem,
   Divider,
-  Alert
+  Alert,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { 
@@ -41,7 +46,9 @@ import {
   Visibility,
   Close,
   SwapHoriz,
-  Timeline
+  Timeline,
+  AccountBalance,
+  Psychology
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -55,6 +62,8 @@ import {
   Area
 } from 'recharts';
 import VaultManager from '../components/VaultManager';
+import { getWalletDisplay, isPhilxdaegu } from '../utils/walletUtils';
+import bnbService from '../services/bnbService';
 
 interface Holding {
   symbol: string;
@@ -120,6 +129,13 @@ const Dashboard: React.FC = () => {
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [tradeAmount, setTradeAmount] = useState('');
   const [tradePrice, setTradePrice] = useState('');
+
+  const [walletAddress, setWalletAddress] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [balances, setBalances] = useState({
+    bnb: '0',
+    pyusd: '0'
+  });
 
   const refreshData = async () => {
     setIsLoading(true);
@@ -189,6 +205,28 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const connectWallet = async () => {
+      try {
+        const address = await bnbService.connectWallet();
+        setWalletAddress(address);
+        setIsConnected(true);
+        
+        // Set mock balances for philxdaegu
+        if (isPhilxdaegu(address)) {
+          setBalances({
+            bnb: '0.5',
+            pyusd: '1000.00'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+      }
+    };
+
+    connectWallet();
+  }, []);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -200,6 +238,33 @@ const Dashboard: React.FC = () => {
   const formatPercent = (value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
+
+  const recentTransactions = [
+    {
+      id: 1,
+      type: 'Swap',
+      description: 'PYUSD → tBNB',
+      amount: '100 PYUSD → 0.312 tBNB',
+      timestamp: '2 hours ago',
+      status: 'completed'
+    },
+    {
+      id: 2,
+      type: 'Strategy',
+      description: 'BNB Momentum Strategy Created',
+      amount: 'Strategy ID: 1',
+      timestamp: '1 day ago',
+      status: 'completed'
+    },
+    {
+      id: 3,
+      type: 'Position',
+      description: 'Position Opened',
+      amount: '50 PYUSD',
+      timestamp: '2 days ago',
+      status: 'completed'
+    }
+  ];
 
   return (
     <Box
@@ -446,6 +511,169 @@ const Dashboard: React.FC = () => {
             </Table>
           </TableContainer>
         </Paper>
+
+        {/* Wallet Status */}
+        <Card sx={{ mb: 3, bgcolor: 'primary.light', color: 'white' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
+                <AccountBalance />
+              </Avatar>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h6">
+                  {isConnected ? getWalletDisplay(walletAddress) : 'Not Connected'}
+                </Typography>
+                <Typography variant="body2">
+                  {isConnected ? walletAddress : 'Connect your wallet to start trading'}
+                </Typography>
+              </Box>
+              {isPhilxdaegu(walletAddress) && (
+                <Chip 
+                  label="Hackathon Demo" 
+                  color="secondary" 
+                  size="small"
+                  icon={<Psychology />}
+                />
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Balances */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <AttachMoney />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6">PYUSD Balance</Typography>
+                    <Typography variant="h4" color="primary">
+                      {balances.pyusd}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'warning.main' }}>
+                    <TrendingUp />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6">tBNB Balance</Typography>
+                    <Typography variant="h4" color="warning.main">
+                      {balances.bnb}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Quick Actions */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <SwapHoriz sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  PYUSD Swap
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Swap between PYUSD and tBNB with real-time rates
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  fullWidth
+                  href="/pyusd-swap"
+                >
+                  Start Swapping
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <Psychology sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  AI Strategies
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Create AI-powered trading strategies with PYUSD
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  fullWidth
+                  href="/strategy-builder"
+                >
+                  Build Strategy
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <TrendingUp sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Market Analysis
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  View real-time market data and AI insights
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  fullWidth
+                  href="/analytics"
+                >
+                  View Analytics
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Recent Transactions */}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Recent Transactions
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <List>
+              {recentTransactions.map((tx) => (
+                <ListItem key={tx.id} divider>
+                  <ListItemAvatar>
+                    <Avatar sx={{ 
+                      bgcolor: tx.type === 'Swap' ? 'primary.main' : 
+                               tx.type === 'Strategy' ? 'success.main' : 'warning.main' 
+                    }}>
+                      {tx.type === 'Swap' ? <SwapHoriz /> : 
+                       tx.type === 'Strategy' ? <Psychology /> : <TrendingUp />}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={tx.description}
+                    secondary={`${tx.amount} • ${tx.timestamp}`}
+                  />
+                  <Chip 
+                    label={tx.status} 
+                    color={tx.status === 'completed' ? 'success' : 'warning'} 
+                    size="small" 
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
       </Container>
 
       {/* Asset Details Modal */}

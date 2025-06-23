@@ -1,271 +1,291 @@
-export interface BNBStrategy {
-  id: string;
-  userId: string;
-  name: string;
-  description: string;
-  token: string;
-  amount: number;
-  interval: 'block' | 'minute' | 'hour' | 'day';
-  strategy: 'momentum' | 'mean_reversion' | 'breakout' | 'ai_driven';
-  enabled: boolean;
-  totalInvested: number;
-  lastExecution: number;
-  gasUsed: number;
-  transactionCount: number;
-}
+import { ethers } from 'ethers';
+// @ts-ignore
+import StrategyManagerABI from '../contracts/StrategyManager.json';
 
-export interface BNBMarketData {
-  pair: string;
-  price: number;
-  volume24h: number;
-  change24h: number;
-  marketCap: number;
-}
+// BSC Testnet configuration
+const BSC_TESTNET_RPC = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+const BSC_MAINNET_RPC = 'https://bsc-dataseed.binance.org/';
 
-export interface BNBTransaction {
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  gasUsed: number;
-  blockNumber: number;
-  timestamp: number;
-  status: 'success' | 'failed' | 'pending';
-}
+// Contract addresses (update these after deployment)
+const STRATEGY_MANAGER_ADDRESS = {
+  testnet: '0x0000000000000000000000000000000000000000', // Replace with deployed address
+  mainnet: '0x0000000000000000000000000000000000000000'  // Replace with deployed address
+};
 
-export interface AITradingSignal {
-  id: string;
-  strategy: string;
-  signal: 'buy' | 'sell' | 'hold';
-  confidence: number;
-  reasoning: string;
-  timestamp: number;
-}
+// PayPal USD token addresses on BSC
+const PAYPAL_USD_ADDRESS = {
+  testnet: '0x0000000000000000000000000000000000000000', // Replace with real address
+  mainnet: '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8'  // Real PayPal USD on BSC mainnet
+};
+
+// BNB Chain tokens - PYUSD Focus Only
+export const BNB_TOKENS = [
+  {
+    symbol: 'BNB',
+    name: 'BNB',
+    address: '0x0000000000000000000000000000000000000000', // Native BNB
+    decimals: 18,
+    description: 'BNB Chain native token with high throughput and low fees',
+    price: 320.45,
+    change24h: 2.3,
+    marketCap: '48.2B'
+  },
+  {
+    symbol: 'PYUSD',
+    name: 'PayPal USD',
+    address: PAYPAL_USD_ADDRESS.mainnet,
+    decimals: 6,
+    description: 'PayPal\'s stablecoin for digital payments - Hackathon Focus',
+    price: 1.00,
+    change24h: 0.0,
+    marketCap: '1.2B',
+    isHackathonFocus: true
+  }
+];
 
 class BNBService {
-  private contractAddress: string;
+  private provider: ethers.providers.Web3Provider | null = null;
+  private signer: ethers.Signer | null = null;
+  private contract: ethers.Contract | null = null;
+  private network: 'testnet' | 'mainnet' = 'testnet';
 
   constructor() {
-    this.contractAddress = '0x1234567890123456789012345678901234567890'; // Mock contract address
+    this.initializeProvider();
   }
 
-  // Connect wallet to BNB Chain
-  async connectWallet(): Promise<string | null> {
-    try {
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        return accounts[0];
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      return null;
+  private initializeProvider() {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      this.signer = this.provider.getSigner();
     }
   }
 
-  // Get BNB Chain market data
-  async getMarketData(pair: string): Promise<BNBMarketData> {
+  async connectWallet(): Promise<string> {
+    if (!this.provider) {
+      throw new Error('MetaMask not detected');
+    }
+
     try {
-      // Mock market data for demo
-      const basePrices = {
-        'BNB/USD': 312.45,
-        'BTC/USD': 43250.75,
-        'ETH/USD': 2650.30,
-        'CAKE/USD': 2.85
-      };
+      // Request account access
+      await this.provider.send('eth_requestAccounts', []);
+      const address = await this.signer!.getAddress();
+      
+      // Get network
+      const network = await this.provider.getNetwork();
+      this.network = network.chainId === 97 ? 'testnet' : 'mainnet';
+      
+      // Initialize contract
+      if (!this.signer) throw new Error('Signer not initialized');
+      this.contract = new ethers.Contract(
+        STRATEGY_MANAGER_ADDRESS[this.network],
+        StrategyManagerABI.abi,
+        this.signer
+      );
 
-      const basePrice = basePrices[pair as keyof typeof basePrices] || 100;
-      const variation = (Math.random() - 0.5) * 0.02;
-      const price = basePrice * (1 + variation);
-
-      return {
-        pair,
-        price: parseFloat(price.toFixed(2)),
-        volume24h: Math.random() * 1000000,
-        change24h: (Math.random() - 0.5) * 10,
-        marketCap: Math.random() * 1000000000
-      };
+      console.log('✅ Connected to BNB Chain:', this.network);
+      return address;
     } catch (error) {
-      console.error('Failed to get market data:', error);
+      console.error('❌ Failed to connect wallet:', error);
       throw error;
     }
   }
 
-  // Create AI-powered trading strategy on BNB Chain
-  async createStrategy(strategy: Omit<BNBStrategy, 'id' | 'totalInvested' | 'lastExecution' | 'gasUsed' | 'transactionCount'>): Promise<string> {
-    try {
-      // Simulate blockchain transaction
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const txHash = `0x${Math.random().toString(36).substring(2, 15)}${Date.now().toString(16)}`;
-      
-      console.log('Strategy created on BNB Chain:', {
-        txHash,
-        strategy: strategy.name,
-        token: strategy.token,
-        amount: strategy.amount
-      });
-
-      return txHash;
-    } catch (error) {
-      console.error('Failed to create strategy:', error);
-      throw error;
-    }
+  async getBalance(address: string): Promise<string> {
+    if (!this.provider) throw new Error('Provider not initialized');
+    
+    const balance = await this.provider.getBalance(address);
+    return ethers.utils.formatEther(balance);
   }
 
-  // Execute strategy on BNB Chain
-  async executeStrategy(strategyId: string): Promise<BNBTransaction> {
-    try {
-      // Simulate strategy execution
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const gasUsed = Math.floor(Math.random() * 50000) + 50000; // 50k-100k gas
-      
-      return {
-        hash: `0x${Math.random().toString(36).substring(2, 15)}${Date.now().toString(16)}`,
-        from: '0x1234567890123456789012345678901234567890',
-        to: this.contractAddress,
-        value: '100000000000000000', // 0.1 BNB in wei
-        gasUsed,
-        blockNumber: Math.floor(Math.random() * 1000000) + 30000000,
-        timestamp: Date.now(),
-        status: 'success'
-      };
-    } catch (error) {
-      console.error('Failed to execute strategy:', error);
-      throw error;
-    }
+  async getTokenBalance(tokenAddress: string, userAddress: string): Promise<string> {
+    if (!this.provider) throw new Error('Provider not initialized');
+    
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      ['function balanceOf(address) view returns (uint256)', 'function decimals() view returns (uint8)'],
+      this.provider
+    );
+    
+    const [balance, decimals] = await Promise.all([
+      tokenContract.balanceOf(userAddress),
+      tokenContract.decimals()
+    ]);
+    
+    return ethers.utils.formatUnits(balance, decimals);
   }
 
-  // Get AI trading signals
-  async getAITradingSignals(): Promise<AITradingSignal[]> {
-    try {
-      // Simulate AI analysis
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const signals = [
-        {
-          id: 'signal_1',
-          strategy: 'momentum',
-          signal: 'buy' as const,
-          confidence: 0.85,
-          reasoning: 'Strong upward momentum detected with RSI oversold conditions',
-          timestamp: Date.now()
-        },
-        {
-          id: 'signal_2',
-          strategy: 'mean_reversion',
-          signal: 'sell' as const,
-          confidence: 0.72,
-          reasoning: 'Price significantly above moving average, reversion expected',
-          timestamp: Date.now() - 300000
-        },
-        {
-          id: 'signal_3',
-          strategy: 'breakout',
-          signal: 'hold' as const,
-          confidence: 0.65,
-          reasoning: 'Consolidation pattern detected, waiting for breakout confirmation',
-          timestamp: Date.now() - 600000
-        }
-      ];
+  async createStrategy(
+    name: string,
+    description: string,
+    targetToken: string,
+    stopLoss: number,
+    takeProfit: number,
+    positionSize: number
+  ): Promise<ethers.ContractTransaction> {
+    if (!this.contract) throw new Error('Contract not initialized');
 
-      return signals;
-    } catch (error) {
-      console.error('Failed to get AI trading signals:', error);
-      return [];
-    }
+    const tx = await this.contract.createStrategy(
+      name,
+      description,
+      targetToken,
+      ethers.utils.parseUnits(stopLoss.toString(), 18),
+      ethers.utils.parseUnits(takeProfit.toString(), 18),
+      ethers.utils.parseUnits(positionSize.toString(), 18)
+    );
+
+    console.log('📝 Creating strategy:', tx.hash);
+    return tx;
   }
 
-  // Get user strategies from BNB Chain
-  async getUserStrategies(userId: string): Promise<BNBStrategy[]> {
-    try {
-      // Simulate fetching from blockchain
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return [
-        {
-          id: 'strategy_1',
-          userId,
-          name: 'BNB Momentum Strategy',
-          description: 'AI-driven momentum trading on BNB/USD pair',
-          token: 'BNB',
-          amount: 100,
-          interval: 'hour',
-          strategy: 'ai_driven',
-          enabled: true,
-          totalInvested: 1500,
-          lastExecution: Date.now() - 3600000,
-          gasUsed: 75000,
-          transactionCount: 15
-        },
-        {
-          id: 'strategy_2',
-          userId,
-          name: 'CAKE Mean Reversion',
-          description: 'Mean reversion strategy for CAKE token',
-          token: 'CAKE',
-          amount: 50,
-          interval: 'day',
-          strategy: 'mean_reversion',
-          enabled: true,
-          totalInvested: 800,
-          lastExecution: Date.now() - 86400000,
-          gasUsed: 65000,
-          transactionCount: 8
-        }
-      ];
-    } catch (error) {
-      console.error('Failed to get user strategies:', error);
-      return [];
-    }
+  async openPosition(strategyId: number, amount: string): Promise<ethers.ContractTransaction> {
+    if (!this.contract || !this.signer) throw new Error('Contract or signer not initialized');
+
+    // First approve PYUSD spending
+    const paypalUSD = new ethers.Contract(
+      PAYPAL_USD_ADDRESS[this.network],
+      ['function approve(address,uint256) returns (bool)'],
+      this.signer!
+    );
+
+    const amountWei = ethers.utils.parseUnits(amount, 6); // PYUSD has 6 decimals
+    await paypalUSD.approve(this.contract.address, amountWei);
+
+    const tx = await this.contract.openPosition(strategyId, amountWei);
+    console.log('💰 Opening position:', tx.hash);
+    return tx;
+  }
+
+  async closePosition(positionIndex: number): Promise<ethers.ContractTransaction> {
+    if (!this.contract) throw new Error('Contract not initialized');
+
+    const tx = await this.contract.closePosition(positionIndex);
+    console.log('🔒 Closing position:', tx.hash);
+    return tx;
+  }
+
+  async getStrategy(strategyId: number): Promise<any> {
+    if (!this.contract) throw new Error('Contract not initialized');
+
+    const strategy = await this.contract.getStrategy(strategyId);
+    return {
+      id: strategy.id.toNumber(),
+      creator: strategy.creator,
+      name: strategy.name,
+      description: strategy.description,
+      targetToken: strategy.targetToken,
+      entryPrice: ethers.utils.formatUnits(strategy.entryPrice, 18),
+      stopLoss: ethers.utils.formatUnits(strategy.stopLoss, 18),
+      takeProfit: ethers.utils.formatUnits(strategy.takeProfit, 18),
+      positionSize: ethers.utils.formatUnits(strategy.positionSize, 18),
+      isActive: strategy.isActive,
+      createdAt: new Date(strategy.createdAt.toNumber() * 1000),
+      totalReturn: ethers.utils.formatUnits(strategy.totalReturn, 18),
+      totalTrades: strategy.totalTrades.toNumber(),
+      winRate: strategy.winRate.toNumber()
+    };
+  }
+
+  async getUserPositions(userAddress: string): Promise<any[]> {
+    if (!this.contract) throw new Error('Contract not initialized');
+
+    const positions = await this.contract.getUserPositions(userAddress);
+    return positions.map((pos: any) => ({
+      strategyId: pos.strategyId.toNumber(),
+      amount: ethers.utils.formatUnits(pos.amount, 18),
+      entryPrice: ethers.utils.formatUnits(pos.entryPrice, 18),
+      timestamp: new Date(pos.timestamp.toNumber() * 1000),
+      isOpen: pos.isOpen
+    }));
+  }
+
+  async getUserStats(userAddress: string): Promise<{totalVolume: string, totalProfit: string}> {
+    if (!this.contract) throw new Error('Contract not initialized');
+
+    const [totalVolume, totalProfit] = await this.contract.getUserStats(userAddress);
+    return {
+      totalVolume: ethers.utils.formatUnits(totalVolume, 18),
+      totalProfit: ethers.utils.formatUnits(totalProfit, 18)
+    };
+  }
+
+  async getCurrentPrice(tokenAddress: string): Promise<string> {
+    if (!this.contract) throw new Error('Contract not initialized');
+
+    const price = await this.contract.getCurrentPrice(tokenAddress);
+    return ethers.utils.formatUnits(price, 18);
+  }
+
+  // AI Trading Signals (mock for now, integrate with real AI service)
+  async getAITradingSignals(tokenSymbol: string): Promise<any> {
+    // Simulate AI analysis
+    const signals = {
+      token: tokenSymbol,
+      signal: Math.random() > 0.5 ? 'BUY' : 'SELL',
+      confidence: Math.random() * 100,
+      reasoning: `AI analysis suggests ${tokenSymbol} shows ${Math.random() > 0.5 ? 'bullish' : 'bearish'} momentum`,
+      timestamp: new Date()
+    };
+
+    return signals;
   }
 
   // Get transaction history
-  async getTransactionHistory(userId: string): Promise<BNBTransaction[]> {
-    try {
-      // Simulate blockchain transaction history
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const transactions: BNBTransaction[] = [];
-      for (let i = 0; i < 5; i++) {
-        transactions.push({
-          hash: `0x${Math.random().toString(36).substring(2, 15)}${Date.now().toString(16)}`,
-          from: userId,
-          to: this.contractAddress,
-          value: (Math.random() * 0.5 + 0.1).toFixed(4), // Random BNB amount
-          gasUsed: Math.floor(Math.random() * 50000) + 50000,
-          blockNumber: Math.floor(Math.random() * 1000000) + 30000000,
-          timestamp: Date.now() - Math.random() * 86400000,
-          status: 'success'
-        });
+  async getTransactionHistory(address: string): Promise<any[]> {
+    if (!this.provider) throw new Error('Provider not initialized');
+
+    // Get recent transactions
+    const history = [
+      {
+        hash: '0x123...abc',
+        from: address,
+        to: STRATEGY_MANAGER_ADDRESS[this.network],
+        value: '1000000000000000000', // 1 BNB in wei
+        timestamp: new Date(),
+        type: 'Strategy Creation'
+      },
+      {
+        hash: '0x456...def',
+        from: address,
+        to: STRATEGY_MANAGER_ADDRESS[this.network],
+        value: '50000000', // 50 PYUSD in wei
+        timestamp: new Date(Date.now() - 3600000),
+        type: 'Position Opened'
       }
-      
-      return transactions.sort((a, b) => b.timestamp - a.timestamp);
-    } catch (error) {
-      console.error('Failed to get transaction history:', error);
-      return [];
-    }
+    ];
+
+    return history;
   }
 
-  // Deploy strategy to BNB Chain
-  async deployStrategy(strategyCode: string): Promise<string> {
+  // Check if wallet is connected to BSC
+  async checkNetwork(): Promise<boolean> {
+    if (!this.provider) return false;
+
+    const network = await this.provider.getNetwork();
+    return network.chainId === 56 || network.chainId === 97; // BSC Mainnet or Testnet
+  }
+
+  // Switch to BSC Testnet
+  async switchToBSCTestnet(): Promise<void> {
+    if (!this.provider) throw new Error('Provider not initialized');
+
     try {
-      // Simulate smart contract deployment
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      const contractAddress = `0x${Math.random().toString(36).substring(2, 15)}${Date.now().toString(16)}`;
-      
-      console.log('Strategy deployed to BNB Chain:', contractAddress);
-      
-      return contractAddress;
+      await this.provider.send('wallet_addEthereumChain', [{
+        chainId: '0x61', // 97 in hex
+        chainName: 'BSC Testnet',
+        nativeCurrency: {
+          name: 'tBNB',
+          symbol: 'tBNB',
+          decimals: 18
+        },
+        rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+        blockExplorerUrls: ['https://testnet.bscscan.com/']
+      }]);
     } catch (error) {
-      console.error('Failed to deploy strategy:', error);
+      console.error('Failed to switch network:', error);
       throw error;
     }
   }
 }
 
-export default new BNBService(); 
+const bnbService = new BNBService();
+export default bnbService; 

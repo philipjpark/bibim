@@ -33,7 +33,10 @@ import {
   Fastfood as FastfoodIcon,
   SetMeal as SetMealIcon,
   RestaurantMenu as MenuIcon,
-  AutoAwesome as AutoIcon
+  AutoAwesome as AutoIcon,
+  SwapHoriz as SwapHorizIcon,
+  Analytics as AnalyticsIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import WalletConnect from './WalletConnect';
 
@@ -71,6 +74,24 @@ const Navbar: React.FC = () => {
       path: '/token-incentivization',
       label: 'Token Incentives',
       icon: <CakeIcon sx={{ fontSize: 20 }} />,
+      badge: null
+    },
+    {
+      path: '/pyusd-swap',
+      label: 'PYUSD Swap',
+      icon: <SwapHorizIcon sx={{ fontSize: 20 }} />,
+      badge: 'HACK'
+    },
+    {
+      path: '/analytics',
+      label: 'Analytics',
+      icon: <AnalyticsIcon sx={{ fontSize: 20 }} />,
+      badge: null
+    },
+    {
+      path: '/portfolio',
+      label: 'Portfolio',
+      icon: <AccountBalanceIcon sx={{ fontSize: 20 }} />,
       badge: null
     }
   ];
