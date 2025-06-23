@@ -1,4 +1,4 @@
-/// Entry point for the Congee platform. Coordinates the modules together.
+/// Entry point for the bibim platform. Coordinates the modules together.
 mod llm_strategy;
 mod solana_integration;
 mod data_sources;

@@ -1,5 +1,5 @@
 [package]
-name = "congee"
+name = "bibim"
 version = "2.0.0"
 edition = "2021"
 description = "Advanced Agent-Based Quantitative Trading Platform"

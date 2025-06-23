@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for Congee Platform API endpoints
+Test script for bibim Platform API endpoints
 Tests the new CoinGecko integration and backtesting functionality
 """
 
@@ -36,7 +36,7 @@ def test_endpoint(endpoint, description):
         print(f"❌ ERROR: {e}")
 
 def main():
-    print("🚀 Congee Platform Integration Tests")
+    print("🚀 bibim Platform Integration Tests")
     print("====================================")
     
     # Test basic health check
