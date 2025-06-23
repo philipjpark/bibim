@@ -7,7 +7,7 @@ import theme from './styles/theme';
 
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import StrategyBuilder from './pages/StrategyBuilder';
+import StrategyBuilder from './components/strategy/StrategyBuilder';
 import TokenIncentivization from './components/incentives/TokenIncentivization';
 import Backtest from './pages/Backtest';
 import Dashboard from './pages/Dashboard';

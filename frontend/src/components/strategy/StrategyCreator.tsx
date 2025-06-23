@@ -50,7 +50,17 @@ import {
   Diamond as DiamondIcon,
   Star as StarIcon,
   Psychology as StoryIcon,
-  Palette as PaletteIcon
+  Palette as PaletteIcon,
+  Restaurant as BowlIcon,
+  LocalDining as DiningIcon,
+  LocalPizza as PizzaIcon,
+  Cake as CakeIcon,
+  LocalBar as BarIcon,
+  LocalCafe as CafeIcon,
+  Book as BookIcon,
+  Bolt as LightningIcon,
+  Diamond as OreIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -129,23 +139,6 @@ const StrategyCreator: React.FC = () => {
       },
       storyElements: ['Wisdom', 'Patience', 'Knowledge', 'Adaptation'],
       visualStyle: 'Mystical and ethereal'
-    },
-    {
-      id: 'hunter',
-      name: 'Shadow Hunter',
-      description: 'Stealth strategy that tracks institutional flows and moves before the crowd',
-      personality: 'Silent and deadly, Shadow Hunter operates in the dark corners of the market. It follows the money, not the noise, and strikes when the prey is most vulnerable.',
-      riskProfile: 'Balanced',
-      timeHorizon: 'Medium-term',
-      focus: 'Breakout',
-      baseParameters: {
-        entryCondition: 'Institutional Flow + Volume Confirmation',
-        stopLoss: 2.5,
-        takeProfit: 7,
-        positionSize: 4
-      },
-      storyElements: ['Stealth', 'Tracking', 'Precision', 'Instinct'],
-      visualStyle: 'Dark and mysterious'
     },
     {
       id: 'alchemist',
@@ -227,7 +220,6 @@ const StrategyCreator: React.FC = () => {
       const colors = {
         'Phoenix Rising': 'ff6b35',
         'The Sage': '667eea',
-        'Shadow Hunter': '2c3e50',
         'The Alchemist': 'f39c12',
         'Storm Chaser': '3498db'
       };
@@ -262,8 +254,6 @@ const StrategyCreator: React.FC = () => {
         'Phoenix Rising': `In the depths of market despair, ${strategyData.name} emerges like a mythical phoenix from the ashes of broken charts. Born from the fires of countless market cycles, this strategy doesn't just survive chaos—it thrives in it. When others flee in panic, ${strategyData.name} spreads its wings and soars above the destruction, finding golden opportunities in the most unlikely places. Its creator, a trader who has seen markets rise and fall like the tides, crafted this strategy to embody the eternal cycle of death and rebirth that defines the crypto markets.`,
         
         'The Sage': `Ancient wisdom whispers through the digital corridors of ${strategyData.name}. Like a master who has meditated for centuries on the nature of markets, this strategy speaks in riddles but trades with surgical precision. Its creator, a student of both traditional finance and the chaotic beauty of crypto, designed ${strategyData.name} to be the voice of reason in a world of noise. It doesn't chase trends—it understands them. It doesn't predict the future—it learns from the past. In a market where everyone wants to be the fastest, ${strategyData.name} chooses to be the wisest.`,
-        
-        'Shadow Hunter': `Silent as a shadow, deadly as a predator, ${strategyData.name} stalks the dark corners of the market where institutional money flows like underground rivers. Its creator, a former quant who learned to read the subtle signs of big money movement, crafted this strategy to be invisible to the masses but lethal to market inefficiencies. ${strategyData.name} doesn't make noise—it makes money. It follows the scent of institutional flows, tracks the footprints of smart money, and strikes when the prey is most vulnerable. In a world of sheep, ${strategyData.name} is the wolf that knows how to hunt.`,
         
         'The Alchemist': `In the mystical laboratory of ${strategyData.name}, market data transforms into golden opportunities through the ancient art of pattern alchemy. Its creator, a trader who sees the hidden connections between seemingly unrelated market movements, designed this strategy to turn base market chaos into profitable order. ${strategyData.name} doesn't just analyze patterns—it creates them. It doesn't follow the crowd—it leads them. Like the alchemists of old who sought to turn lead into gold, ${strategyData.name} transforms market noise into trading signals, turning the impossible into the inevitable.`,
         
@@ -341,12 +331,15 @@ const StrategyCreator: React.FC = () => {
       case 0:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-              Choose Your Strategy Foundation
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              Select a template that resonates with your trading philosophy, or start from scratch
-            </Typography>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <BowlIcon sx={{ fontSize: 60, color: '#667eea', mb: 2 }} />
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                🍜 Mix Your Strategy Bowl
+              </Typography>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+                Choose your base ingredients and let's create something delicious
+              </Typography>
+            </Box>
             
             <Grid container spacing={3}>
               {strategyTemplates.map((template) => (
@@ -359,16 +352,29 @@ const StrategyCreator: React.FC = () => {
                       onClick={() => handleTemplateSelect(template)}
                       sx={{
                         cursor: 'pointer',
-                        borderRadius: '16px',
+                        borderRadius: '20px',
                         background: selectedTemplate?.id === template.id 
-                          ? 'linear-gradient(45deg, rgba(102, 126, 234, 0.1) 30%, rgba(118, 75, 162, 0.1) 90%)'
-                          : 'rgba(255, 255, 255, 0.9)',
+                          ? 'linear-gradient(45deg, rgba(102, 126, 234, 0.15) 30%, rgba(118, 75, 162, 0.15) 90%)'
+                          : 'rgba(255, 255, 255, 0.95)',
                         backdropFilter: 'blur(10px)',
                         border: selectedTemplate?.id === template.id 
-                          ? '2px solid #667eea'
-                          : '1px solid rgba(255, 255, 255, 0.2)',
+                          ? '3px solid #667eea'
+                          : '2px solid rgba(255, 255, 255, 0.3)',
+                        position: 'relative',
+                        overflow: 'hidden',
                         '&:hover': {
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                          transform: 'translateY(-4px)',
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: '4px',
+                          background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                          opacity: selectedTemplate?.id === template.id ? 1 : 0.3,
                         }
                       }}
                     >
@@ -376,17 +382,18 @@ const StrategyCreator: React.FC = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Avatar
                             sx={{
-                              width: 50,
-                              height: 50,
+                              width: 60,
+                              height: 60,
                               mr: 2,
                               background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                              fontSize: '1.5rem'
+                              fontSize: '1.8rem',
+                              border: '3px solid rgba(255, 255, 255, 0.3)'
                             }}
                           >
-                            {template.name.charAt(0)}
+                            {getStrategyIcon(template.id)}
                           </Avatar>
                           <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#667eea' }}>
                               {template.name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
@@ -395,7 +402,7 @@ const StrategyCreator: React.FC = () => {
                           </Box>
                         </Box>
                         
-                        <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.5 }}>
+                        <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
                           {template.description}
                         </Typography>
                         
@@ -406,7 +413,14 @@ const StrategyCreator: React.FC = () => {
                               label={element}
                               size="small"
                               variant="outlined"
-                              sx={{ fontSize: '0.7rem' }}
+                              sx={{ 
+                                fontSize: '0.7rem',
+                                borderColor: '#667eea',
+                                color: '#667eea',
+                                '&:hover': {
+                                  background: 'rgba(102, 126, 234, 0.1)'
+                                }
+                              }}
                             />
                           ))}
                         </Box>
@@ -426,14 +440,20 @@ const StrategyCreator: React.FC = () => {
       case 1:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-              Craft Your Strategy Identity
-            </Typography>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <DiningIcon sx={{ fontSize: 60, color: '#667eea', mb: 2 }} />
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                🥢 Craft Your Strategy Identity
+              </Typography>
+              <Typography variant="h6" color="text.secondary">
+                Give your strategy a unique flavor and personality
+              </Typography>
+            </Box>
             
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#667eea', fontWeight: 'bold' }}>
                     Strategy Name
                   </Typography>
                   <TextField
@@ -442,10 +462,21 @@ const StrategyCreator: React.FC = () => {
                     onChange={(e) => setStrategyData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Enter a unique name for your strategy"
                     variant="outlined"
-                    sx={{ mb: 2 }}
+                    sx={{ 
+                      mb: 2,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '&:hover fieldset': {
+                          borderColor: '#667eea',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#667eea',
+                        },
+                      }
+                    }}
                   />
                   
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#667eea', fontWeight: 'bold' }}>
                     Description
                   </Typography>
                   <TextField
@@ -456,36 +487,54 @@ const StrategyCreator: React.FC = () => {
                     onChange={(e) => setStrategyData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe what makes your strategy unique..."
                     variant="outlined"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '&:hover fieldset': {
+                          borderColor: '#667eea',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#667eea',
+                        },
+                      }
+                    }}
                   />
                 </Box>
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Strategy Avatar
+                  <Typography variant="h6" gutterBottom sx={{ color: '#667eea', fontWeight: 'bold' }}>
+                    Strategy Bowl Avatar
                   </Typography>
                   
                   <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
                     <Avatar
                       src={strategyData.avatar}
                       sx={{
-                        width: 120,
-                        height: 120,
-                        fontSize: '3rem',
+                        width: 140,
+                        height: 140,
+                        fontSize: '3.5rem',
                         background: strategyData.avatar ? 'transparent' : 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                        border: '3px solid rgba(255, 255, 255, 0.3)'
+                        border: '4px solid rgba(102, 126, 234, 0.3)',
+                        borderRadius: '50%',
+                        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
                       }}
                     >
-                      {strategyData.name.charAt(0) || '?'}
+                      {strategyData.name.charAt(0) || '🍜'}
                     </Avatar>
                     
                     <Box sx={{ position: 'absolute', bottom: 0, right: 0 }}>
                       <IconButton
                         onClick={() => setShowImageDialog(true)}
                         sx={{
-                          background: 'rgba(255, 255, 255, 0.9)',
-                          '&:hover': { background: 'rgba(255, 255, 255, 1)' }
+                          background: 'rgba(102, 126, 234, 0.9)',
+                          color: 'white',
+                          '&:hover': { 
+                            background: 'rgba(102, 126, 234, 1)',
+                            transform: 'scale(1.1)'
+                          },
+                          transition: 'all 0.3s ease'
                         }}
                       >
                         <EditIcon />
@@ -731,6 +780,21 @@ const StrategyCreator: React.FC = () => {
     }
   };
 
+  const getStrategyIcon = (strategyId: string) => {
+    switch (strategyId) {
+      case 'phoenix':
+        return <FireIcon sx={{ fontSize: '1.8rem' }} />;
+      case 'sage':
+        return <PersonIcon sx={{ fontSize: '1.8rem' }} />;
+      case 'alchemist':
+        return <OreIcon sx={{ fontSize: '1.8rem' }} />;
+      case 'storm':
+        return <LightningIcon sx={{ fontSize: '1.8rem' }} />;
+      default:
+        return <BowlIcon sx={{ fontSize: '1.8rem' }} />;
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
@@ -741,7 +805,7 @@ const StrategyCreator: React.FC = () => {
       >
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Chip
-            label="🎨 Strategy Creator"
+            label="🍽️ Strategy Creator"
             color="primary"
             sx={{ 
               mb: 2,

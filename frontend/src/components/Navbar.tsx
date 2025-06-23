@@ -19,13 +19,20 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Dashboard as DashboardIcon,
-  Build as BuildIcon,
-  EmojiEvents as TrophyIcon,
-  AccountBalanceWallet as WalletIcon,
-  TrendingUp as TrendingUpIcon,
   Restaurant as RestaurantIcon,
   Store as StoreIcon,
-  Brush as BrushIcon
+  Brush as BrushIcon,
+  AccountBalanceWallet as WalletIcon,
+  TrendingUp as TrendingUpIcon,
+  EmojiEvents as TrophyIcon,
+  Build as BuildIcon,
+  LocalDining as DiningIcon,
+  Kitchen as KitchenIcon,
+  Cake as CakeIcon,
+  LocalPizza as PizzaIcon,
+  Fastfood as FastfoodIcon,
+  SetMeal as SetMealIcon,
+  RestaurantMenu as MenuIcon
 } from '@mui/icons-material';
 import WalletConnect from './WalletConnect';
 
@@ -38,19 +45,19 @@ const Navbar: React.FC = () => {
     {
       path: '/dashboard',
       label: 'Dashboard',
-      icon: <DashboardIcon sx={{ fontSize: 20 }} />,
+      icon: <RestaurantIcon sx={{ fontSize: 20 }} />,
       badge: null
     },
     {
       path: '/strategy-builder',
       label: 'Strategy Builder',
-      icon: <BuildIcon sx={{ fontSize: 20 }} />,
+      icon: <KitchenIcon sx={{ fontSize: 20 }} />,
       badge: 'AI'
     },
     {
       path: '/strategy-creator',
       label: 'Create Strategy',
-      icon: <BrushIcon sx={{ fontSize: 20 }} />,
+      icon: <MenuIcon sx={{ fontSize: 20 }} />,
       badge: 'NEW'
     },
     {
@@ -62,7 +69,7 @@ const Navbar: React.FC = () => {
     {
       path: '/token-incentivization',
       label: 'Token Incentives',
-      icon: <TrophyIcon sx={{ fontSize: 20 }} />,
+      icon: <CakeIcon sx={{ fontSize: 20 }} />,
       badge: null
     }
   ];
