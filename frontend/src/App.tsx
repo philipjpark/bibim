@@ -14,8 +14,6 @@ import Dashboard from './pages/Dashboard';
 import StrategyMarketplace from './components/strategy/StrategyMarketplace';
 import StrategyCreator from './components/strategy/StrategyCreator';
 import PYUSDSwap from './components/swap/PYUSDSwap';
-import Analytics from './pages/Analytics';
-import Portfolio from './pages/Portfolio';
 
 const App: React.FC = () => {
   return (
@@ -34,8 +32,6 @@ const App: React.FC = () => {
               <Route path="/backtest" element={<Backtest />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/pyusd-swap" element={<PYUSDSwap />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/portfolio" element={<Portfolio />} />
             </Routes>
           </div>
         </Router>

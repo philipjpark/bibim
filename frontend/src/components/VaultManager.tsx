@@ -13,8 +13,6 @@ import {
   Chip
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 
 interface VaultData {
   name: string;
@@ -25,7 +23,6 @@ interface VaultData {
 }
 
 const VaultManager: React.FC = () => {
-  const { publicKey, connected } = useWallet();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [action, setAction] = useState<'deposit' | 'withdraw'>('deposit');
@@ -41,11 +38,6 @@ const VaultManager: React.FC = () => {
   });
 
   const handleDeposit = async () => {
-    if (!connected || !publicKey) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
     if (!amount || parseFloat(amount) <= 0) {
       setError('Please enter a valid amount');
       return;
@@ -55,7 +47,7 @@ const VaultManager: React.FC = () => {
     setError(null);
 
     try {
-      // Mock deposit - replace with real Solana transaction
+      // Mock deposit - replace with real transaction
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Update local state
@@ -75,11 +67,6 @@ const VaultManager: React.FC = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!connected || !publicKey) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
     if (!amount || parseFloat(amount) <= 0) {
       setError('Please enter a valid amount');
       return;
@@ -94,7 +81,7 @@ const VaultManager: React.FC = () => {
     setError(null);
 
     try {
-      // Mock withdraw - replace with real Solana transaction
+      // Mock withdraw - replace with real transaction
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const withdrawShares = parseFloat(amount);
@@ -111,19 +98,6 @@ const VaultManager: React.FC = () => {
       setLoading(false);
     }
   };
-
-  if (!connected) {
-    return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h6" gutterBottom>
-          Connect Your Wallet
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Please connect your Solana wallet to manage vault positions
-        </Typography>
-      </Paper>
-    );
-  }
 
   return (
     <Box sx={{ width: '100%' }}>

@@ -33,12 +33,10 @@ import {
   Fastfood as FastfoodIcon,
   SetMeal as SetMealIcon,
   RestaurantMenu as MenuIcon,
-  AutoAwesome as AutoIcon,
-  SwapHoriz as SwapHorizIcon,
-  Analytics as AnalyticsIcon,
-  AccountBalance as AccountBalanceIcon
+  AutoAwesome as AutoIcon
 } from '@mui/icons-material';
 import WalletConnect from './WalletConnect';
+import BNBWalletConnect from './BNBWalletConnect';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
@@ -74,24 +72,6 @@ const Navbar: React.FC = () => {
       path: '/token-incentivization',
       label: 'Token Incentives',
       icon: <CakeIcon sx={{ fontSize: 20 }} />,
-      badge: null
-    },
-    {
-      path: '/pyusd-swap',
-      label: 'PYUSD Swap',
-      icon: <SwapHorizIcon sx={{ fontSize: 20 }} />,
-      badge: 'HACK'
-    },
-    {
-      path: '/analytics',
-      label: 'Analytics',
-      icon: <AnalyticsIcon sx={{ fontSize: 20 }} />,
-      badge: null
-    },
-    {
-      path: '/portfolio',
-      label: 'Portfolio',
-      icon: <AccountBalanceIcon sx={{ fontSize: 20 }} />,
       badge: null
     }
   ];
@@ -228,7 +208,7 @@ const Navbar: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <WalletConnect />
+            <BNBWalletConnect variant="navbar" />
           </motion.div>
         </Toolbar>
       </Container>

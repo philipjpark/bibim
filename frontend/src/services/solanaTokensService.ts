@@ -20,6 +20,23 @@ export interface SolanaToken {
 class SolanaTokensService {
   private tokens: SolanaToken[] = [
     {
+      symbol: 'tBNB',
+      name: 'BSC Testnet BNB',
+      address: '0x0000000000000000000000000000000000000000',
+      description: 'BNB token on BSC testnet for testing and development purposes.',
+      marketCap: 1000000000,
+      price: 300.00,
+      volume24h: 500000000,
+      website: 'https://www.bnbchain.org',
+      whitepaper: 'https://www.bnbchain.org/en/whitepaper',
+      twitter: 'https://twitter.com/BNBCHAIN',
+      discord: 'https://discord.gg/bnbchain',
+      category: 'Infrastructure',
+      launchDate: '2020-09-01',
+      totalSupply: 200000000,
+      circulatingSupply: 150000000
+    },
+    {
       symbol: 'SOL',
       name: 'Solana',
       address: 'So11111111111111111111111111111111111111112',

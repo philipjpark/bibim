@@ -18,6 +18,9 @@ const PAYPAL_USD_ADDRESS = {
   mainnet: '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8'  // Real PayPal USD on BSC mainnet
 };
 
+// Testnet PYUSD Mock Contract (for development)
+const MOCK_PYUSD_ADDRESS = '0x0000000000000000000000000000000000000000'; // Replace after deployment
+
 // BNB Chain tokens - PYUSD Focus Only
 export const BNB_TOKENS = [
   {
@@ -35,11 +38,21 @@ export const BNB_TOKENS = [
     name: 'PayPal USD',
     address: PAYPAL_USD_ADDRESS.mainnet,
     decimals: 6,
-    description: 'PayPal\'s stablecoin for digital payments - Hackathon Focus',
+    description: 'PayPal\'s stablecoin for digital payments - Platform Focus',
     price: 1.00,
     change24h: 0.0,
     marketCap: '1.2B',
-    isHackathonFocus: true
+    isPlatformFocus: true
+  },
+  {
+    symbol: 'tBNB',
+    name: 'Test BNB',
+    address: '0x0000000000000000000000000000000000000000', // Native tBNB on testnet
+    decimals: 18,
+    description: 'BNB Chain testnet token for development and testing',
+    price: 320.45,
+    change24h: 2.3,
+    marketCap: 'Testnet'
   }
 ];
 
@@ -112,6 +125,45 @@ class BNBService {
     ]);
     
     return ethers.utils.formatUnits(balance, decimals);
+  }
+
+  async getPYUSDBalance(userAddress: string): Promise<string> {
+    try {
+      if (this.network === 'mainnet') {
+        return await this.getTokenBalance(PAYPAL_USD_ADDRESS.mainnet, userAddress);
+      } else {
+        // For testnet, return mock balance for philxdaegu
+        if (userAddress.toLowerCase() === '0x742d35cc6634c0532925a3b8d4c9db96c4b4d8b6') {
+          return '1000.00'; // Mock PYUSD balance for philxdaegu
+        }
+        return await this.getTokenBalance(MOCK_PYUSD_ADDRESS, userAddress);
+      }
+    } catch (error) {
+      console.error('Error fetching PYUSD balance:', error);
+      return '0.00';
+    }
+  }
+
+  async getAllBalances(userAddress: string): Promise<{ bnb: string; pyusd: string; tbnb: string }> {
+    try {
+      const [bnbBalance, pyusdBalance] = await Promise.all([
+        this.getBalance(userAddress),
+        this.getPYUSDBalance(userAddress)
+      ]);
+
+      return {
+        bnb: bnbBalance,
+        pyusd: pyusdBalance,
+        tbnb: bnbBalance // tBNB is the same as BNB on testnet
+      };
+    } catch (error) {
+      console.error('Error fetching balances:', error);
+      return {
+        bnb: '0.00',
+        pyusd: '0.00',
+        tbnb: '0.00'
+      };
+    }
   }
 
   async createStrategy(

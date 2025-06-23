@@ -69,7 +69,7 @@ const Backtest: React.FC = () => {
   // Mock data for demonstration
   const mockResults = {
     tradeCount: 156,
-    totalProfit: 12500.75,
+    totalProfit: 28.75,
     winRate: 0.68,
     maxDrawdown: 0.15,
     sharpeRatio: 2.45,

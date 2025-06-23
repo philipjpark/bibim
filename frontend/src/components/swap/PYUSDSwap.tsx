@@ -73,18 +73,21 @@ const PYUSDSwap: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Simulate connecting to philxdaegu's wallet
+    // Connect to wallet and fetch real balances
     const connectWallet = async () => {
       try {
         const address = await bnbService.connectWallet();
         const isPhil = isPhilxdaegu(address);
         
+        // Get real balances
+        const balances = await bnbService.getAllBalances(address);
+        
         setSwapState(prev => ({
           ...prev,
           isConnected: true,
           walletAddress: address,
-          pyusdBalance: isPhil ? '1000.00' : '0',
-          bnbBalance: isPhil ? '0.5' : '0',
+          pyusdBalance: balances.pyusd,
+          bnbBalance: balances.tbnb, // Use tBNB balance for testnet
           swapHistory: isPhil ? mockSwapHistory : []
         }));
       } catch (error) {

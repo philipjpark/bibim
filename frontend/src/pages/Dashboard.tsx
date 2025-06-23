@@ -64,6 +64,7 @@ import {
 import VaultManager from '../components/VaultManager';
 import { getWalletDisplay, isPhilxdaegu } from '../utils/walletUtils';
 import bnbService from '../services/bnbService';
+import BNBWalletConnect from '../components/BNBWalletConnect';
 
 interface Holding {
   symbol: string;
@@ -132,24 +133,19 @@ const Dashboard: React.FC = () => {
 
   const [walletAddress, setWalletAddress] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [balances, setBalances] = useState({
-    bnb: '0',
-    pyusd: '0'
-  });
+  const [bnbBalance, setBnbBalance] = useState('');
+  const [pyusdBalance, setPyusdBalance] = useState('');
 
   const refreshData = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Update with mock data
-    setHoldings(prev => prev.map(holding => ({
-      ...holding,
-      change24h: holding.change24h + (Math.random() - 0.5) * 2,
-      value: holding.value * (1 + (Math.random() - 0.5) * 0.05)
-    })));
-    
-    setIsLoading(false);
+    if (walletAddress) {
+      try {
+        const balances = await bnbService.getAllBalances(walletAddress);
+        setBnbBalance(balances.bnb);
+        setPyusdBalance(balances.pyusd);
+      } catch (error) {
+        console.error('Failed to refresh balances:', error);
+      }
+    }
   };
 
   // Handle View Details
@@ -200,32 +196,12 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(refreshData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const connectWallet = async () => {
-      try {
-        const address = await bnbService.connectWallet();
-        setWalletAddress(address);
-        setIsConnected(true);
-        
-        // Set mock balances for philxdaegu
-        if (isPhilxdaegu(address)) {
-          setBalances({
-            bnb: '0.5',
-            pyusd: '1000.00'
-          });
-        }
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-      }
-    };
-
-    connectWallet();
-  }, []);
+    // Auto-refresh every 30 seconds only if connected
+    if (isConnected) {
+      const interval = setInterval(refreshData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isConnected]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -512,70 +488,132 @@ const Dashboard: React.FC = () => {
           </TableContainer>
         </Paper>
 
-        {/* Wallet Status */}
-        <Card sx={{ mb: 3, bgcolor: 'primary.light', color: 'white' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
-                <AccountBalance />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">
-                  {isConnected ? getWalletDisplay(walletAddress) : 'Not Connected'}
+        {/* Wallet Connection Section */}
+        {!isConnected ? (
+          <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+            <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <Avatar sx={{ width: 80, height: 80, bgcolor: 'rgba(255,255,255,0.2)', mb: 2 }}>
+                  <AccountBalance sx={{ fontSize: 40 }} />
+                </Avatar>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  Connect Your Wallet
                 </Typography>
-                <Typography variant="body2">
-                  {isConnected ? walletAddress : 'Connect your wallet to start trading'}
+                <Typography variant="body1" sx={{ mb: 3, opacity: 0.9 }}>
+                  Connect your wallet to start trading PYUSD and access your portfolio
+                </Typography>
+                <BNBWalletConnect 
+                  onConnect={(address) => {
+                    setWalletAddress(address);
+                    setIsConnected(true);
+                    refreshData();
+                  }}
+                />
+                <Typography variant="body2" sx={{ mt: 2, opacity: 0.8 }}>
+                  Supports MetaMask, WalletConnect, and other Web3 wallets
                 </Typography>
               </Box>
-              {isPhilxdaegu(walletAddress) && (
-                <Chip 
-                  label="Hackathon Demo" 
-                  color="secondary" 
-                  size="small"
-                  icon={<Psychology />}
-                />
-              )}
-            </Box>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card sx={{ mb: 3, bgcolor: 'primary.light', color: 'white' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
+                  <AccountBalance />
+                </Avatar>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6">
+                    {getWalletDisplay(walletAddress)}
+                  </Typography>
+                  <Typography variant="body2">
+                    {walletAddress}
+                  </Typography>
+                </Box>
+                {isPhilxdaegu(walletAddress) && (
+                  <Chip 
+                    label="Platform Demo" 
+                    color="secondary" 
+                    size="small"
+                    icon={<Psychology />}
+                  />
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Balances */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={6}>
-            <Card>
+        {/* Balance Cards - Only show when connected */}
+        {isConnected && (
+          <>
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.light', color: 'white' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                    <AttachMoney sx={{ mr: 1, fontSize: 40 }} />
+                  </Box>
+                  <Typography variant="h6">PYUSD Balance</Typography>
+                  <Typography variant="h4" color="primary">
+                    {pyusdBalance}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    PayPal USD Stablecoin
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, textAlign: 'center', bgcolor: 'warning.light', color: 'white' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                    <AccountBalance sx={{ mr: 1, fontSize: 40 }} />
+                  </Box>
+                  <Typography variant="h6">tBNB Balance</Typography>
+                  <Typography variant="h4" color="warning.main">
+                    {bnbBalance}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    BNB Chain Testnet Token
+                  </Typography>
+                </Card>
+              </Grid>
+            </Grid>
+
+            {/* PYUSD Holdings Highlight */}
+            <Card sx={{ mb: 3, bgcolor: 'success.light', color: 'white' }}>
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    <AttachMoney />
-                  </Avatar>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
-                    <Typography variant="h6">PYUSD Balance</Typography>
-                    <Typography variant="h4" color="primary">
-                      {balances.pyusd}
+                    <Typography variant="h5" gutterBottom>
+                      💰 Your PYUSD Holdings
+                    </Typography>
+                    <Typography variant="h3" fontWeight="bold">
+                      {pyusdBalance} PYUSD
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 1 }}>
+                      Ready to swap to tBNB or use in trading strategies
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <IconButton 
+                      onClick={refreshData}
+                      sx={{ color: 'white', mb: 1 }}
+                      title="Refresh balances"
+                    >
+                      <Refresh />
+                    </IconButton>
+                    <Chip 
+                      label="PayPal USD" 
+                      color="primary" 
+                      sx={{ mb: 1, color: 'white' }}
+                    />
+                    <Typography variant="body2">
+                      Stable Value: $1.00 USD
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'warning.main' }}>
-                    <TrendingUp />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h6">tBNB Balance</Typography>
-                    <Typography variant="h4" color="warning.main">
-                      {balances.bnb}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+          </>
+        )}
 
         {/* Quick Actions */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -587,14 +625,24 @@ const Dashboard: React.FC = () => {
                   PYUSD Swap
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Swap between PYUSD and tBNB with real-time rates
+                  {isConnected 
+                    ? "Swap between PYUSD and tBNB with real-time rates"
+                    : "Connect your wallet to start swapping PYUSD tokens"
+                  }
                 </Typography>
                 <Button 
-                  variant="contained" 
+                  variant={isConnected ? "contained" : "outlined"}
                   fullWidth
-                  href="/pyusd-swap"
+                  href={isConnected ? "/pyusd-swap" : undefined}
+                  onClick={!isConnected ? () => {
+                    // Open wallet connect dialog
+                    const walletConnect = document.querySelector('[data-wallet-connect]') as HTMLElement;
+                    if (walletConnect) {
+                      walletConnect.click();
+                    }
+                  } : undefined}
                 >
-                  Start Swapping
+                  {isConnected ? "Start Swapping" : "Connect to Swap"}
                 </Button>
               </CardContent>
             </Card>
@@ -607,14 +655,24 @@ const Dashboard: React.FC = () => {
                   AI Strategies
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Create AI-powered trading strategies with PYUSD
+                  {isConnected 
+                    ? "Create AI-powered trading strategies with PYUSD"
+                    : "Build intelligent trading strategies with your connected wallet"
+                  }
                 </Typography>
                 <Button 
-                  variant="outlined" 
+                  variant={isConnected ? "outlined" : "outlined"}
                   fullWidth
-                  href="/strategy-builder"
+                  href={isConnected ? "/strategy-builder" : undefined}
+                  onClick={!isConnected ? () => {
+                    // Open wallet connect dialog
+                    const walletConnect = document.querySelector('[data-wallet-connect]') as HTMLElement;
+                    if (walletConnect) {
+                      walletConnect.click();
+                    }
+                  } : undefined}
                 >
-                  Build Strategy
+                  {isConnected ? "Build Strategy" : "Connect to Build"}
                 </Button>
               </CardContent>
             </Card>
@@ -627,14 +685,24 @@ const Dashboard: React.FC = () => {
                   Market Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  View real-time market data and AI insights
+                  {isConnected 
+                    ? "View real-time market data and AI insights"
+                    : "Explore market analytics and trading insights"
+                  }
                 </Typography>
                 <Button 
-                  variant="outlined" 
+                  variant={isConnected ? "outlined" : "outlined"}
                   fullWidth
-                  href="/analytics"
+                  href={isConnected ? "/analytics" : undefined}
+                  onClick={!isConnected ? () => {
+                    // Open wallet connect dialog
+                    const walletConnect = document.querySelector('[data-wallet-connect]') as HTMLElement;
+                    if (walletConnect) {
+                      walletConnect.click();
+                    }
+                  } : undefined}
                 >
-                  View Analytics
+                  {isConnected ? "View Analytics" : "Connect to View"}
                 </Button>
               </CardContent>
             </Card>

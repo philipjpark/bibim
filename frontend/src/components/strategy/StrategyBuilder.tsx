@@ -76,11 +76,11 @@ interface ProvenStrategy {
 
 const provenStrategies: ProvenStrategy[] = [
   {
-    id: 'sol_breakout_v1',
-    name: 'Solana Breakout V1',
-    description: 'A proven breakout strategy optimized for Solana\'s volatility patterns. Uses volume confirmation and dynamic stop-loss.',
+    id: 'bnb_breakout_v1',
+    name: 'BNB Breakout V1',
+    description: 'A proven breakout strategy optimized for BNB\'s volatility patterns. Uses volume confirmation and dynamic stop-loss.',
     baseParameters: {
-      coin: 'SOL',
+      coin: 'tBNB',
       strategyType: 'breakout',
       breakoutCondition: 'price_increase',
       percentageIncrease: 3,
@@ -89,22 +89,22 @@ const provenStrategies: ProvenStrategy[] = [
       riskManagement: {
         stopLoss: 2,
         takeProfit: 6,
-        positionSize: 100
+        positionSize: 1
       },
       instantSwap: {
         enabled: false,
-        stablecoin: 'USDC',
+        stablecoin: 'PYUSD',
         minProfitThreshold: 1.5,
         autoCompound: false
       }
     }
   },
   {
-    id: 'sol_momentum_v1',
-    name: 'Solana Momentum V1',
-    description: 'Momentum-based strategy that capitalizes on Solana\'s rapid price movements. Uses RSI and MACD for timing.',
+    id: 'bnb_momentum_v1',
+    name: 'BNB Momentum V1',
+    description: 'Momentum-based strategy that capitalizes on BNB\'s rapid price movements. Uses RSI and MACD for timing.',
     baseParameters: {
-      coin: 'SOL',
+      coin: 'tBNB',
       strategyType: 'momentum',
       breakoutCondition: 'price_increase',
       percentageIncrease: 5,
@@ -113,11 +113,11 @@ const provenStrategies: ProvenStrategy[] = [
       riskManagement: {
         stopLoss: 3,
         takeProfit: 9,
-        positionSize: 80
+        positionSize: 1
       },
       instantSwap: {
         enabled: false,
-        stablecoin: 'USDC',
+        stablecoin: 'PYUSD',
         minProfitThreshold: 1.5,
         autoCompound: false
       }
@@ -146,7 +146,7 @@ const StrategyBuilder: React.FC = () => {
   const [modelType, setModelType] = useState<'gemini' | 'gpt' | 'claude'>('gemini');
 
   const [parameters, setParameters] = useState<StrategyParameters>({
-    coin: 'SOL',
+    coin: 'tBNB',
     strategyType: 'breakout',
     breakoutCondition: 'price_increase',
     percentageIncrease: 3,
@@ -155,11 +155,11 @@ const StrategyBuilder: React.FC = () => {
     riskManagement: {
       stopLoss: 2,
       takeProfit: 6,
-      positionSize: 100
+      positionSize: 1
     },
     instantSwap: {
       enabled: false,
-      stablecoin: 'USDC',
+      stablecoin: 'PYUSD',
       minProfitThreshold: 1.5,
       autoCompound: false
     }
@@ -953,8 +953,7 @@ Focus on practical, evidence-based recommendations that can be implemented right
                               })}
                             >
                               <MenuItem value="USDC">USDC</MenuItem>
-                              <MenuItem value="USDT">USDT</MenuItem>
-                              <MenuItem value="DAI">DAI</MenuItem>
+                              <MenuItem value="PYUSD">PYUSD</MenuItem>
                             </Select>
                           </FormControl>
                         </Grid>

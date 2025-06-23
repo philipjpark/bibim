@@ -283,7 +283,7 @@ const RDAgentDashboard = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Success Rate</span>
-                      <span className="text-2xl font-bold text-orange-600">68%</span>
+                      <span className="text-2xl font-bold text-orange-600">75%</span>
                     </div>
                   </div>
                 </CardContent>

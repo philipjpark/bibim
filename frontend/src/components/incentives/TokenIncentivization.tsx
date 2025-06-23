@@ -129,6 +129,14 @@ const TokenIncentivization: React.FC = () => {
     }
   ];
 
+  const leaderboardData = [
+    { tier: 'Diamond', rank: 'Top 1%', bibim: 1000, color: '#B9F2FF', icon: <DiamondIcon /> },
+    { tier: 'Platinum', rank: 'Top 5%', bibim: 500, color: '#E5E4E2', icon: <StarIcon /> },
+    { tier: 'Gold', rank: 'Top 10%', bibim: 250, color: '#FFD700', icon: <TrophyIcon /> },
+    { tier: 'Silver', rank: 'Top 25%', bibim: 100, color: '#C0C0C0', icon: <StarIcon /> },
+    { tier: 'Bronze', rank: 'Top 50%', bibim: 50, color: '#CD7F32', icon: <StarIcon /> }
+  ];
+
   const handleNext = () => {
     setActiveStep((prevStep) => prevStep + 1);
   };
@@ -630,13 +638,7 @@ const TokenIncentivization: React.FC = () => {
             </Typography>
 
             <Grid container spacing={3}>
-              {[
-                { tier: 'Diamond', rank: 'Top 1%', bibim: 10000, color: '#B9F2FF', icon: <DiamondIcon /> },
-                { tier: 'Platinum', rank: 'Top 5%', bibim: 5000, color: '#E5E4E2', icon: <StarIcon /> },
-                { tier: 'Gold', rank: 'Top 10%', bibim: 2500, color: '#FFD700', icon: <TrophyIcon /> },
-                { tier: 'Silver', rank: 'Top 25%', bibim: 1000, color: '#C0C0C0', icon: <StarIcon /> },
-                { tier: 'Bronze', rank: 'Top 50%', bibim: 500, color: '#CD7F32', icon: <StarIcon /> }
-              ].map((reward, index) => (
+              {leaderboardData.map((reward, index) => (
                 <Grid item xs={12} md={6} lg={4} key={index}>
                   <Card 
                     sx={{ 
@@ -821,7 +823,7 @@ const TokenIncentivization: React.FC = () => {
                         Diamond Trader
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Top 1% - 10,000 BIBIM
+                        Top 1% - 1,000 BIBIM
                       </Typography>
                     </Box>
                   </CardContent>
@@ -847,11 +849,11 @@ const TokenIncentivization: React.FC = () => {
                         </TableHead>
                         <TableBody>
                           {[
-                            { token: 'WIF', tier: 'Tier 3', pnl: '+15%', points: 45, date: '2025-01-15' },
-                            { token: 'PYTH', tier: 'Tier 3', pnl: '+8%', points: 24, date: '2025-01-14' },
-                            { token: 'SOL', tier: 'Tier 1', pnl: '+3%', points: 9, date: '2025-01-13' },
-                            { token: 'BONK', tier: 'Tier 4', pnl: '+25%', points: 150, date: '2025-01-12' },
-                            { token: 'JUP', tier: 'Tier 2', pnl: '-2%', points: -10, date: '2025-01-11' }
+                            { token: 'WIF', tier: 'Tier 3', pnl: '+15%', points: 45, date: '2025-06-20' },
+                            { token: 'PYTH', tier: 'Tier 3', pnl: '+8%', points: 24, date: '2025-06-20' },
+                            { token: 'SOL', tier: 'Tier 1', pnl: '+3%', points: 9, date: '2025-06-19' },
+                            { token: 'BONK', tier: 'Tier 4', pnl: '+25%', points: 150, date: '2025-06-18' },
+                            { token: 'JUP', tier: 'Tier 2', pnl: '-2%', points: -10, date: '2025-06-17' }
                           ].map((trade, index) => (
                             <TableRow key={index}>
                               <TableCell>{trade.token}</TableCell>
