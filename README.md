@@ -259,3 +259,8 @@ cargo test
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 **BIBIM (short for Bibimbap)** - Where AI meets DeFi for intelligent trading strategies. 🚀
+
+## 🧾 Presentation Slides
+
+[BIBIM Slides.pdf](https://github.com/user-attachments/files/20874292/BIBIM.Slides.pdf)
+
