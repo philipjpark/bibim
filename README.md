@@ -266,8 +266,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [BIBIM Slides.pdf](https://github.com/user-attachments/files/20874292/BIBIM.Slides.pdf)
 
-Interested in the app?  
-Request a live demo: philipparknyc@gmail.com
-
 🎥 [Watch the demo video](https://www.youtube.com/watch?v=hk9QK0v3Xtc)
 
