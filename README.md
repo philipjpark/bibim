@@ -1,4 +1,4 @@
-🥈 2025 Permissionless IV Hackathon – 2nd Place
+### 🥈 2025 Permissionless IV Hackathon – 2nd Place
 
 # 🍚 BIBIM - AI-Powered DeFi Strategy Platform
 
@@ -262,9 +262,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **BIBIM (short for Bibimbap)** - Where AI meets DeFi for intelligent trading strategies. 🚀
 
-## 🧾 Presentation Slides
+## 🧾 Additional Info
 
-[BIBIM Slides.pdf](https://github.com/user-attachments/files/20874292/BIBIM.Slides.pdf)
+🍚 [BIBIM Slides.pdf](https://github.com/user-attachments/files/20874292/BIBIM.Slides.pdf)
 
 🎥 [Watch the demo video](https://www.youtube.com/watch?v=hk9QK0v3Xtc)
 
