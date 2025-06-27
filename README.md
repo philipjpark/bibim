@@ -1,3 +1,5 @@
+🥈 2025 Permissionless IV Hackathon – 2nd Place
+
 # 🍚 BIBIM - AI-Powered DeFi Strategy Platform
 
 BIBIM is a comprehensive DeFi strategy platform that combines artificial intelligence with blockchain technology to provide users the power to: 
@@ -263,4 +265,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🧾 Presentation Slides
 
 [BIBIM Slides.pdf](https://github.com/user-attachments/files/20874292/BIBIM.Slides.pdf)
+
+Interested in the app?  
+Request a live demo: philipparknyc@gmail.com
+
+🎥 [Watch the demo video](https://www.youtube.com/watch?v=hk9QK0v3Xtc)
 
