@@ -27,7 +27,7 @@ class GeminiService {
   private baseUrl: string;
 
   constructor() {
-    this.apiKey = 'AIzaSyA3ZnA_jMG48RGfruayPyUgdxNlpaPM0zk';
+    this.apiKey = process.env.REACT_APP_GEMINI_API_KEY || '';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
   }
 
