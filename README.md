@@ -1,6 +1,6 @@
-#### 🥈 2025 Permissionless IV Hackathon – 2nd Place Winner
-
 # 🍚 BIBIM - AI-Powered DeFi Strategy Platform
+
+### 🥈 2025 Permissionless IV Hackathon – 2nd Place Winner
 
 BIBIM is a comprehensive DeFi strategy platform that combines artificial intelligence with blockchain technology to provide users the power to: 
 1. Abstract the core components of building a trading strategy through dropdowns, tl:drs, and visuals 
