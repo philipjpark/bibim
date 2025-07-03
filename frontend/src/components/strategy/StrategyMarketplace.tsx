@@ -51,6 +51,9 @@ import {
   Sort as SortIcon
 } from '@mui/icons-material';
 import { useWallet } from '@solana/wallet-adapter-react';
+import solMomentumImage from '../../assets/images/sol-momentum-master.svg';
+import wifBreakoutImage from '../../assets/images/wif-breakout-pro.svg';
+import pythMeanReversionImage from '../../assets/images/pyth-mean-reversion.svg';
 
 interface StrategyToken {
   id: string;
@@ -120,7 +123,7 @@ const StrategyMarketplace: React.FC = () => {
       tokenAddress: 'SoL...ABC123',
       price: 0.85,
       performance: {
-        totalReturn: 247.3,
+        totalReturn: 247.30,
         monthlyReturn: 23.4,
         weeklyReturn: 8.7,
         dailyReturn: 2.1,
@@ -144,7 +147,7 @@ const StrategyMarketplace: React.FC = () => {
         exitRules: ['Stop loss at 2%', 'Take profit at 6%']
       },
       metadata: {
-        image: 'https://via.placeholder.com/300x200/667eea/ffffff?text=SOL+Momentum',
+        image: solMomentumImage,
         category: 'Momentum',
         tags: ['AI', 'High-Frequency', 'SOL'],
         createdAt: '2024-01-15',
@@ -163,7 +166,7 @@ const StrategyMarketplace: React.FC = () => {
       tokenAddress: 'WIF...DEF456',
       price: 1.25,
       performance: {
-        totalReturn: 189.7,
+        totalReturn: 189.71,
         monthlyReturn: 18.9,
         weeklyReturn: 6.2,
         dailyReturn: 1.8,
@@ -187,7 +190,7 @@ const StrategyMarketplace: React.FC = () => {
         exitRules: ['Stop loss at 3%', 'Take profit at 8%']
       },
       metadata: {
-        image: 'https://via.placeholder.com/300x200/ff6b35/ffffff?text=WIF+Breakout',
+        image: wifBreakoutImage,
         category: 'Breakout',
         tags: ['Meme', 'High-Beta', 'WIF'],
         createdAt: '2024-01-10',
@@ -206,7 +209,7 @@ const StrategyMarketplace: React.FC = () => {
       tokenAddress: 'PYTH...GHI789',
       price: 0.65,
       performance: {
-        totalReturn: 89.4,
+        totalReturn: 89.44,
         monthlyReturn: 12.1,
         weeklyReturn: 3.8,
         dailyReturn: 0.9,
@@ -230,7 +233,7 @@ const StrategyMarketplace: React.FC = () => {
         exitRules: ['Stop loss at 1.5%', 'Take profit at 4%']
       },
       metadata: {
-        image: 'https://via.placeholder.com/300x200/00d4aa/ffffff?text=PYTH+Mean+Rev',
+        image: pythMeanReversionImage,
         category: 'Mean Reversion',
         tags: ['Stable', 'Low-Risk', 'PYTH'],
         createdAt: '2024-01-05',
